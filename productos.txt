@@ -1,0 +1,32 @@
+[
+    {
+        "id": 2,
+        "title": "Macbook Pro 2020 M1",
+        "price": "1200",
+        "thumbnail": "https://placekitten.com/200/300"
+    },
+    {
+        "id": 3,
+        "title": "Macbook Pro 2019 Intel",
+        "price": "1100",
+        "thumbnail": "https://placekitten.com/300/400"
+    },
+    {
+        "id": 1,
+        "title": "Macbook Air 2020 M1",
+        "price": "900",
+        "thumbnail": "https://placekitten.com/200/400"
+    },
+    {
+        "id": 4,
+        "title": "test",
+        "price": "123",
+        "thumbnail": "test"
+    },
+    {
+        "id": 5,
+        "title": "test",
+        "price": "123",
+        "thumbnail": "test"
+    }
+]
