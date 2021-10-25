@@ -1,0 +1,17 @@
+<h2>Alta de producto</h2>
+<form class="d-flex flex-column w-25" method="post" action="/api/productos">
+	<label for="title">Titulo</label>
+	<div class="input-group mb-2">
+		<input type="text" id="title" name="title" class="form-control rounded" placeholder="Titulo del producto">
+	</div>
+	<label for="price">Precio</label>
+	<div class="input-group mb-2">
+		<span class="input-group-text">$</span>
+		<input type="text" id="price" name="price" class="form-control rounded" placeholder="Precio del producto"> 
+	</div>
+	<label for="thumbnail">URL Foto</label>
+	<div class="input-group mb-2">
+		<input class="form-control rounded" type="text" id="thumbnail" name="thumbnail" placeholder="Link a una imagen">
+	</div>
+	<button class="btn btn-success mt-4 rounded-pill w-75 align-self-center" type="submit">Enviar</button>
+</form>

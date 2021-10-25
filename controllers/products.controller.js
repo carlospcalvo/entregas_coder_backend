@@ -26,11 +26,8 @@ const postProduct = async (req, res) => {
 	let error_status = 500;
 	try {
 		if (Object.keys(req.body).length > 0) {
-			let new_item_id = await fileHandler.save(req.body);
-			res.status(200).json({
-				new_item_id,
-				...req.body,
-			});
+			await fileHandler.save(req.body);
+			res.redirect("/");
 		} else {
 			error_status = 400;
 			throw new Error("Empty body!");
@@ -119,38 +116,42 @@ const productNotFound = async (req, res, next) => {
 	}
 };
 
+/**
+ * Helper function to initialize products
+ * @param {Number} PORT Port the app will be listening to.
+ */
 const initializeProducts = async (PORT) => {
 	let dummyData = [
 		{
 			id: 1,
 			title: "Macbook Air 2020 M1",
 			price: "1000",
-			thumbnail: "https://placekitten.com/200/400",
+			thumbnail: "https://placekitten.com/40/40",
 		},
 		{
 			id: 2,
 			title: "Macbook Pro 2020 M1",
 			price: "1200",
-			thumbnail: "https://placekitten.com/200/300",
+			thumbnail: "https://placekitten.com/50/50",
 		},
 		{
 			id: 3,
 			title: "Macbook Pro 2019 Intel",
 			price: "1100",
-			thumbnail: "https://placekitten.com/300/400",
+			thumbnail: "https://placekitten.com/30/40",
 		},
 	];
 
 	try {
+		console.log("Cargando datos de productos...");
 		await fileHandler.getAll();
-		console.log("[products controller] Data loaded from file.");
 	} catch (error) {
+		console.log("Inicializando datos de productos...");
 		await fileHandler.save(dummyData[0]);
 		await fileHandler.save(dummyData[1]);
 		await fileHandler.save(dummyData[2]);
-		console.log("[products controller] Data initialized.");
 	} finally {
-		console.log(`Server running on port ${PORT}`);
+		console.log(`Listo! Servidor escuchando en puerto ${PORT}`);
 	}
 };
 

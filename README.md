@@ -1,3 +1,15 @@
-# Link a Glitch
+# Instalación 
+```
+npm i
+```
 
-https://glitch.com/edit/#!/entrega-2-calvo
+# Inicio del servidor y selección del motor de plantillas 
+```
+node index.js 
+[?] Elija un motor de plantillas: 
+ > hbs
+   pug
+   ejs
+```
+Luego de seleccionar el motor de plantillas, presione Enter 
+y el servidor se iniciará con ese motor de plantillas!

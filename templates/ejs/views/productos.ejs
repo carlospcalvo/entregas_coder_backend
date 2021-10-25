@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<%- include('./partials/head.ejs'); %>
+</head>
+<body>
+	<main class="d-flex flex-column justify-content-center align-items-center" style="height:  100vh;">
+		<h1>EJS 💎</h1>
+		<h2>Productos</h2>
+		<% if (productsExist) { %>
+			<table class="table table-striped bordered w-75">
+				<thead>
+					<tr>
+						<th scope="col">ID</th>
+						<th scope="col">Nombre</th>
+						<th scope="col">Precio</th>
+						<th scope="col">Foto</th>
+					</tr>
+				</thead>
+				<tbody class="align-middle">
+					<% products.forEach((product) => { %>
+						<tr>
+							<th scope="row"><%= product.id %></th>
+							<td><%= product.title %></td>
+							<td>$<%= product.price %></td>
+							<td><img src=<%= product.thumbnail %> alt="photo"></td>
+						</tr>	
+					<% }); %>
+				</tbody>
+			</table>
+		<% } else { %>
+			<div class="alert alert-warning" role="alert">
+				No hay productos para mostrar
+			</div>
+		<% } %>
+		<a href="/" class="link-primary mt-4">Ir a inicio</a>
+	</main>
+</body>
+</html>

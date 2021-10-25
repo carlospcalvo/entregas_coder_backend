@@ -1,0 +1,28 @@
+<h2>Productos</h2>
+{{#if productsExist}}
+	<table class="table table-striped bordered w-75">
+		<thead>
+			<tr>
+				<th scope="col">ID</th>
+				<th scope="col">Nombre</th>
+				<th scope="col">Precio</th>
+				<th scope="col">Foto</th>
+			</tr>
+		</thead>
+		<tbody class="align-middle">
+			{{#each products}}
+			<tr>
+				<th scope="row">{{ this.id }}</th>
+				<td>{{ this.title }}</td>
+				<td>${{ this.price }}</td>
+				<td><img src={{ this.thumbnail }} alt="photo"></td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+{{else}}
+	<div class="alert alert-warning" role="alert">
+		No hay productos para mostrar
+	</div>
+{{/if }}
+<a href="/" class="link-primary mt-4">Ir a inicio</a>
