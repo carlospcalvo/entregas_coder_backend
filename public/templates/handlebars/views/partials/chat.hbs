@@ -1,0 +1,41 @@
+<div
+	class="mt-5 w-75 d-flex flex-column justify-content-center align-items-center"
+>
+	<h2>Chat</h2>
+	<div class="w-100 mb-5 p-2 border border-2 rounded">
+		<form
+			class="d-flex justify-content-evenly align-items-center w-100"
+			style="margin: 0; margin-top: .65rem"
+		>
+			<div class="input-group" style="width: 40%;">
+				<input
+					type="email"
+					id="email"
+					name="email"
+					class="form-control rounded"
+					placeholder="Tu email"
+				/>
+			</div>
+			<div class="input-group" style="width: 40%;">
+				<input
+					type="text"
+					id="message"
+					name="message"
+					class="form-control rounded"
+					placeholder="Tu mensaje"
+				/>
+			</div>
+			<button
+				class="btn btn-success rounded"
+				type="button"
+				onclick="sendMessage()"
+			>Enviar</button>
+		</form>
+		<hr />
+		<div id="messages">
+
+		</div>
+
+	</div>
+
+</div>
