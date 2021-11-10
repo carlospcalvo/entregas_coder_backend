@@ -1,35 +1,32 @@
 [
-    {
-        "id": 1,
-        "timestamp": 1636506429661,
-        "codigo": "MBA20_M1_8_256",
-        "nombre": "Macbook Air 2020 M1",
-        "descripcion": "Macbook Air 2020 M1 8GB RAM 256GB SSD",
-        "precio": "1000",
-        "foto": "https://http2.mlstatic.com/D_NQ_NP_2X_801112-MLA46516512347_062021-F.webp",
-        "stock": 100
-    },
-    {
-        "id": 2,
-        "timestamp": 1636506429661,
-        "codigo": "MBP20_M1_8_512",
-        "nombre": "Macbook Pro 2020 M1",
-        "descripcion": "Macbook Pro 2020 M1 8GB RAM 512GB SSD",
-        "precio": "1200",
-        "foto": "https://http2.mlstatic.com/D_NQ_NP_2X_907433-MLA45795227804_052021-F.webp",
-        "stock": 50
-    },
-    {
-        "id": 3,
-        "timestamp": 1636506429661,
-        "codigo": "MBP19_i7_8_256",
-        "nombre": "Macbook Pro 2019 Intel",
-        "descripcion": "Macbook Air 2019 Intel i7 8GB RAM 256GB SSD",
-        "precio": "1100",
-        "foto": "https://http2.mlstatic.com/D_NQ_NP_864399-MLA31654788775_082019-O.jpg",
-        "stock": 34
-    },
-    {
-        "id": 1
-    }
+	{
+		"id": 1,
+		"timestamp": 1636506429661,
+		"codigo": "MBA20_M1_8_256",
+		"nombre": "Macbook Air 2020 M1",
+		"descripcion": "Macbook Air 2020 M1 8GB RAM 256GB SSD",
+		"precio": "1000",
+		"foto": "https://http2.mlstatic.com/D_NQ_NP_2X_801112-MLA46516512347_062021-F.webp",
+		"stock": 100
+	},
+	{
+		"id": 2,
+		"timestamp": 1636506429661,
+		"codigo": "MBP20_M1_8_512",
+		"nombre": "Macbook Pro 2020 M1",
+		"descripcion": "Macbook Pro 2020 M1 8GB RAM 512GB SSD",
+		"precio": "1200",
+		"foto": "https://http2.mlstatic.com/D_NQ_NP_2X_907433-MLA45795227804_052021-F.webp",
+		"stock": 50
+	},
+	{
+		"id": 3,
+		"timestamp": 1636506429661,
+		"codigo": "MBP19_i7_8_256",
+		"nombre": "Macbook Pro 2019 Intel",
+		"descripcion": "Macbook Air 2019 Intel i7 8GB RAM 256GB SSD",
+		"precio": "1100",
+		"foto": "https://http2.mlstatic.com/D_NQ_NP_864399-MLA31654788775_082019-O.jpg",
+		"stock": 34
+	}
 ]
