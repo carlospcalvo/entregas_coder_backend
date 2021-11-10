@@ -20,6 +20,14 @@ app.use((req, res, next) => {
 app.use("/api/productos", productRouter);
 app.use("/api/carrito", cartRouter);
 
+// 404
+app.use((req, res, next) => {
+	res.status(404).json({
+		status: 404,
+		message: `This is not the endpoint you're looking for...`,
+	});
+});
+
 app.listen(PORT, async () => await initializeProducts(PORT)).on(
 	"error",
 	(error) => console.error("[ERROR]", error.message)
