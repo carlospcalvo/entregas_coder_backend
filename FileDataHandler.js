@@ -1,7 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-module.exports = class Contenedor {
+module.exports = class FileDataHandler {
 	constructor(fileName) {
 		this.fileName = path.resolve(fileName);
 	}

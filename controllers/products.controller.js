@@ -1,14 +1,16 @@
-const Contenedor = require("../Contenedor");
-const fileHandler = new Contenedor("productos.txt");
+const FileDataHandler = require("../FileDataHandler");
+const fileHandler = new FileDataHandler("productos.json");
 
 /**
- * Returns all pproducts in database
+ * Returns a product if id is specified, else all products
  * @param {Request} req
  * @param {Response} res
  */
-const getAllProducts = async (req, res) => {
+const getProducts = async (req, res) => {
 	try {
-		let products = await fileHandler.getAll();
+		let products = req.params.id
+			? await fileHandler.getById(req.params.id)
+			: await fileHandler.getAll();
 		res.status(200).json(products);
 	} catch (error) {
 		res.status(500).json({
@@ -17,6 +19,7 @@ const getAllProducts = async (req, res) => {
 		});
 	}
 };
+
 /**
  * Creates a product
  * @param {Request} req
@@ -82,23 +85,6 @@ const deleteProduct = async (req, res) => {
 };
 
 /**
- * Returns a specific product based on id
- * @param {Resquest} req
- * @param {Response} res
- */
-const getProductByID = async (req, res) => {
-	try {
-		let product = await fileHandler.getById(req.params.id);
-		res.status(200).json(product);
-	} catch (error) {
-		res.status(500).json({
-			status: 500,
-			message: error.message,
-		});
-	}
-};
-
-/**
  * Checks if the specified id exists
  * @param {Request} req
  * @param {Response} res
@@ -108,7 +94,7 @@ const productNotFound = async (req, res, next) => {
 	try {
 		let product = await fileHandler.getById(req.params.id);
 
-		product
+		product || req.params.id === undefined
 			? next()
 			: res.status(404).json({ error: "Producto no encontrado" });
 	} catch (error) {
@@ -123,32 +109,44 @@ const initializeProducts = async (PORT) => {
 	let dummyData = [
 		{
 			id: 1,
-			title: "Macbook Air 2020 M1",
-			price: "1000",
-			thumbnail: "https://placekitten.com/200/400",
+			timestamp: Date.now(),
+			codigo: "MBA20_M1_8_256",
+			nombre: "Macbook Air 2020 M1",
+			descripcion: "Macbook Air 2020 M1 8GB RAM 256GB SSD",
+			precio: "1000",
+			foto: "https://http2.mlstatic.com/D_NQ_NP_2X_801112-MLA46516512347_062021-F.webp",
+			stock: 100,
 		},
 		{
 			id: 2,
-			title: "Macbook Pro 2020 M1",
-			price: "1200",
-			thumbnail: "https://placekitten.com/200/300",
+			timestamp: Date.now(),
+			codigo: "MBP20_M1_8_512",
+			nombre: "Macbook Pro 2020 M1",
+			descripcion: "Macbook Pro 2020 M1 8GB RAM 512GB SSD",
+			precio: "1200",
+			foto: "https://http2.mlstatic.com/D_NQ_NP_2X_907433-MLA45795227804_052021-F.webp",
+			stock: 50,
 		},
 		{
 			id: 3,
-			title: "Macbook Pro 2019 Intel",
-			price: "1100",
-			thumbnail: "https://placekitten.com/300/400",
+			timestamp: Date.now(),
+			codigo: "MBP19_i7_8_256",
+			nombre: "Macbook Pro 2019 Intel",
+			descripcion: "Macbook Air 2019 Intel i7 8GB RAM 256GB SSD",
+			precio: "1100",
+			foto: "https://http2.mlstatic.com/D_NQ_NP_864399-MLA31654788775_082019-O.jpg",
+			stock: 34,
 		},
 	];
 
 	try {
 		await fileHandler.getAll();
-		console.log("[products controller] Data loaded from file.");
+		console.log("Loading products...");
 	} catch (error) {
 		await fileHandler.save(dummyData[0]);
 		await fileHandler.save(dummyData[1]);
 		await fileHandler.save(dummyData[2]);
-		console.log("[products controller] Data initialized.");
+		console.log("Initializing products...");
 	} finally {
 		console.log(`Server running on port ${PORT}`);
 	}
@@ -156,8 +154,7 @@ const initializeProducts = async (PORT) => {
 
 module.exports = {
 	initializeProducts,
-	getProductByID,
-	getAllProducts,
+	getProducts,
 	postProduct,
 	updateProduct,
 	deleteProduct,

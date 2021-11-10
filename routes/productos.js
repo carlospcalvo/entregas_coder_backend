@@ -1,7 +1,7 @@
 const express = require("express");
+const isAdmin = require("../controllers/auth/auth.controller");
 const {
-	getAllProducts,
-	getProductByID,
+	getProducts,
 	postProduct,
 	updateProduct,
 	deleteProduct,
@@ -10,14 +10,12 @@ const {
 
 const router = express.Router();
 
-router.get("/", getAllProducts);
+router.get("/:id?", productNotFound, getProducts);
 
-router.post("/", postProduct);
+router.post("/", isAdmin, postProduct);
 
-router.get("/:id", productNotFound, getProductByID);
+router.put("/:id", isAdmin, productNotFound, updateProduct);
 
-router.put("/:id", productNotFound, updateProduct);
-
-router.delete("/:id", productNotFound, deleteProduct);
+router.delete("/:id", isAdmin, productNotFound, deleteProduct);
 
 module.exports = router;
