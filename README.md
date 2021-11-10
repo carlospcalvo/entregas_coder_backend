@@ -1,11 +1,10 @@
-# Correr el proyecto localmente
-
-1. Definir en controllers/auth/auth.controllers.js si se quiere ejecutar como admin o no
+# Auth mock config
+### Definir en `controllers/auth/auth.controllers.js` si se quiere ejecutar como admin o no
 ```js
 const admin = true | false; // Por defecto es true
 ```
-
-2. Ejecutar el archivo index.js:
+# Correr el proyecto localmente
+### Ejecutar el archivo `index.js`:
   * Usando node: 
 ```
 node index.js 
@@ -16,3 +15,6 @@ nodemon index.js
 ``` 
 
 # Link a Glitch
+
+https://three-galvanized-snickerdoodle.glitch.me
+
