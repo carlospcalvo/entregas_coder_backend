@@ -14,7 +14,8 @@ node index.js
 nodemon index.js 
 ``` 
 
-# Link a Glitch
+# Link a Glitch 
+*(No tiene frontend, simplemente funciona como API)*
 
 https://three-galvanized-snickerdoodle.glitch.me
 
