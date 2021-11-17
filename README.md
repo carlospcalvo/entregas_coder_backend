@@ -7,7 +7,7 @@ npm install
 
 Modificar el archivo `databases/config.js` para poder conectarse a las bases de datos.
 
-Ejecutar el archivo index.js
+Ejecutar el archivo `index.js`
 
 ```
 node index.js
