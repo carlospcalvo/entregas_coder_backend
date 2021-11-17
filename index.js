@@ -3,10 +3,11 @@ const { Server: HttpServer } = require("http");
 const { Server: IOServer } = require("socket.io");
 const PORT = 8080;
 const router = require("./routes/productos");
-const { initializeProducts } = require("./controllers/products.controller");
 const configEngine = require("./engine.config");
-const Contenedor = require("./Contenedor");
+const DatabaseHandler = require("./databases/DatabaseHandler");
 const datefns = require("date-fns");
+const db_config = require("./databases/config");
+
 // Initial config
 const app = express();
 const httpServer = new HttpServer(app);
@@ -14,6 +15,9 @@ const io = new IOServer(httpServer);
 
 let products = [];
 let messages = [];
+
+const productHandler = new DatabaseHandler("productos", db_config.mysql);
+const messageHandler = new DatabaseHandler("mensajes", db_config.sqlite);
 
 // Middlewares
 app.use(express.json());
@@ -30,17 +34,19 @@ app.get("/", async (req, res) => {
 httpServer
 	.listen(PORT, async () => {
 		await configEngine(app);
-		await initializeProducts(PORT);
-		products = await getProducts();
+		await productHandler.initialize();
+		await messageHandler.initialize();
+		console.log(`Server running on port ${PORT}!`);
 	})
 	.on("error", (error) => console.error("[ERROR]", error.message));
 
 // Sockets
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
 	console.log("Usuario conectado!");
-	const productFileHandler = new Contenedor("productos.txt");
-	const messageFileHandler = new Contenedor("messages.txt");
+	products = await productHandler.getAll();
+	messages = await messageHandler.getAll();
+
 	socket.emit("products", products);
 	socket.emit("messages", messages);
 
@@ -53,7 +59,7 @@ io.on("connection", (socket) => {
 		});
 		products.push({ id: id + 1, ...data });
 		io.sockets.emit("products", products);
-		productFileHandler.save(data);
+		productHandler.save(data);
 	});
 
 	socket.on("message", (data) => {
@@ -68,16 +74,6 @@ io.on("connection", (socket) => {
 
 		messages.push(message);
 		io.sockets.emit("messages", messages);
-		messageFileHandler.save(message);
+		messageHandler.save(message);
 	});
 });
-
-async function getProducts() {
-	let products = [];
-	try {
-		const fileHandler = new Contenedor("productos.txt");
-		products = await fileHandler.getAll();
-	} catch (error) {}
-
-	return products;
-}

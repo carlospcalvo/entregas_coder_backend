@@ -1,5 +1,6 @@
-const Contenedor = require("../Contenedor");
-const fileHandler = new Contenedor("productos.txt");
+const db_config = require("../databases/config");
+const DatabaseHandler = require("../databases/DatabaseHandler");
+const productHandler = new DatabaseHandler("productos", db_config.mysql);
 
 /**
  * Returns all pproducts in database
@@ -8,7 +9,7 @@ const fileHandler = new Contenedor("productos.txt");
  */
 const getAllProducts = async (req, res) => {
 	try {
-		let products = await fileHandler.getAll();
+		let products = await productHandler.getAll();
 		res.status(200).json(products);
 	} catch (error) {
 		res.status(500).json({
@@ -26,8 +27,8 @@ const postProduct = async (req, res) => {
 	let error_status = 500;
 	try {
 		if (Object.keys(req.body).length > 0) {
-			await fileHandler.save(req.body);
-			res.redirect("/");
+			await productHandler.save(req.body);
+			res.status(200).redirect("/");
 		} else {
 			error_status = 400;
 			throw new Error("Empty body!");
@@ -47,9 +48,9 @@ const postProduct = async (req, res) => {
  */
 const updateProduct = async (req, res) => {
 	try {
-		let product = req.body;
-		await fileHandler.modifyItem(product);
-		res.status(200).json(product);
+		let data = req.body;
+		let finalProduct = await productHandler.modifyItem(data);
+		res.status(200).json(finalProduct);
 	} catch (error) {
 		res.status(500).json({
 			status: 500,
@@ -65,7 +66,7 @@ const updateProduct = async (req, res) => {
  */
 const deleteProduct = async (req, res) => {
 	try {
-		await fileHandler.deleteById(req.params.id);
+		await productHandler.deleteById(parseInt(req.params.id));
 		res.status(200).json({
 			status: 200,
 			message: `Product with id ${req.params.id} deleted succesfully`,
@@ -85,8 +86,8 @@ const deleteProduct = async (req, res) => {
  */
 const getProductByID = async (req, res) => {
 	try {
-		let product = await fileHandler.getById(req.params.id);
-		res.status(200).json(product);
+		let product = await productHandler.getById(req.params.id);
+		res.status(200).json(product[0]);
 	} catch (error) {
 		res.status(500).json({
 			status: 500,
@@ -103,9 +104,8 @@ const getProductByID = async (req, res) => {
  */
 const productNotFound = async (req, res, next) => {
 	try {
-		let product = await fileHandler.getById(req.params.id);
-
-		product
+		let product = await productHandler.getById(parseInt(req.params.id));
+		product.length
 			? next()
 			: res.status(404).json({ error: "Producto no encontrado" });
 	} catch (error) {
@@ -144,12 +144,12 @@ const initializeProducts = async (PORT) => {
 
 	try {
 		console.log("Cargando datos de productos...");
-		await fileHandler.getAll();
+		await productHandler.getAll();
 	} catch (error) {
 		console.log("Inicializando datos de productos...");
-		await fileHandler.save(dummyData[0]);
-		await fileHandler.save(dummyData[1]);
-		await fileHandler.save(dummyData[2]);
+		await productHandler.save(dummyData[0]);
+		await productHandler.save(dummyData[1]);
+		await productHandler.save(dummyData[2]);
 	} finally {
 		console.log(`Listo! Servidor escuchando en puerto ${PORT}`);
 	}
