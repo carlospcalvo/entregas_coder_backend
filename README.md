@@ -8,22 +8,16 @@ const admin = true | false; // Por defecto es true
 
 # Correr el proyecto localmente
 
-### Ejecutar el archivo `index.js`:
+### Ejecutar el archivo `index.js` especificando la base de datos a utilizar:
 
 -   Usando node:
 
 ```
-node index.js
+node index.js mongo | firebase | archivo
 ```
 
--   Usando nodemon:
+-   Usando nodemon especificando la base de datos a utilizar:
 
 ```
-nodemon index.js
+nodemon index.js mongo | firebase | archivo
 ```
-
-# Link a Glitch
-
-_(No tiene frontend, simplemente funciona como API)_
-
-https://three-galvanized-snickerdoodle.glitch.me
