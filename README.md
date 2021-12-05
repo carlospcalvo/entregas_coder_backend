@@ -13,11 +13,11 @@ const admin = true | false; // Por defecto es true
 -   Usando node:
 
 ```
-node index.js mongo | firebase | archivo
+node index.js mongo | firebase | archivo | memoria
 ```
 
 -   Usando nodemon especificando la base de datos a utilizar:
 
 ```
-nodemon index.js mongo | firebase | archivo
+nodemon index.js mongo | firebase | archivo | memoria
 ```

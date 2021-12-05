@@ -80,6 +80,9 @@ const addProductToCart = async (req, res) => {
 						item.quantity
 					);
 					break;
+				case "memoria":
+					CartDataHandler.addProduct(cart, product, item.quantity);
+					break;
 				default:
 					break;
 			}
@@ -118,6 +121,9 @@ const deleteProductFromCart = async (req, res) => {
 				await CartDataHandler.modifyItem(newData);
 			case "firebase":
 				await CartDataHandler.removeProduct(cart, product_id);
+				break;
+			case "memoria":
+				CartDataHandler.removeProduct(cart, product_id);
 				break;
 			default:
 				break;

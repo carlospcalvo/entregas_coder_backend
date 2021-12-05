@@ -1,10 +1,14 @@
 const productMongoDAO = require("./productos/mongodb");
 const productFirebaseDAO = require("./productos/firebase");
 const productArchivoDAO = require("./productos/archivo");
+const productMemoriaDAO = require("./productos/memoria");
 const cartMongoDAO = require("./carrito/mongodb");
 const cartFirebaseDAO = require("./carrito/firebase");
 const cartArchivoDAO = require("./carrito/archivo");
+const cartMemoriaDAO = require("./carrito/memoria");
 const { getFirestore, collection } = require("firebase/firestore/lite");
+
+console.warn(productMemoriaDAO);
 
 let firebaseSelected = process.argv[2] === "firebase";
 let db;
@@ -40,5 +44,9 @@ module.exports = {
 		carritos: firebaseSelected
 			? new cartFirebaseDAO(collection(db, "carritos"))
 			: null,
+	},
+	memoria: {
+		productos: new productMemoriaDAO(),
+		carritos: new cartMemoriaDAO(),
 	},
 };

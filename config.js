@@ -29,8 +29,12 @@ const initialize = () => {
 		case "firebase":
 			logger.log("Firebase 🔥 selected");
 			break;
-		default:
+		case "memoria":
+			logger.log("Memory 💾 selected");
 			break;
+		default:
+			logger.warn(`Unvalid option, exiting...`);
+			process.exit(1);
 	}
 };
 
