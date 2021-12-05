@@ -16,7 +16,7 @@ router.delete("/:id", deleteCart);
 
 router.get("/:id/productos", getCartProducts);
 
-router.post("/:id/productos", productNotFound, addProductToCart);
+router.post("/:id/productos", /* productNotFound, */ addProductToCart);
 
 router.delete(
 	"/:id/productos/:id_prod",

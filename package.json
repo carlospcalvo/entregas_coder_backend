@@ -14,6 +14,10 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"express": "^4.17.1"
+		"express": "^4.17.1",
+		"firebase": "^9.6.0",
+		"firebase-admin": "^10.0.0",
+		"mongoose": "^6.0.14",
+		"tracer": "^1.1.5"
 	}
 }

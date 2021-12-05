@@ -15,12 +15,16 @@ module.exports = class FileDataHandler {
 		let id = 1;
 
 		try {
-			let fileData;
-			const data = await fs.readFile(this.fileName, {
-				encoding: "utf-8",
-			});
+			let fileData = [];
 
-			fileData = JSON.parse(data);
+			try {
+				let data = await fs.readFile(this.fileName, {
+					encoding: "utf-8",
+				});
+
+				fileData = JSON.parse(data);
+			} catch {}
+
 			fileData.forEach((element) => {
 				if (element.id >= id) {
 					id = element.id + 1;
@@ -34,10 +38,14 @@ module.exports = class FileDataHandler {
 			);
 		} catch {
 			if (newData) {
-				await fs.writeFile(
-					this.fileName,
-					JSON.stringify([{ id, ...newData }], null, 4)
-				);
+				try {
+					await fs.writeFile(
+						this.fileName,
+						JSON.stringify([{ id, ...newData }], null, 4)
+					);
+				} catch (error) {
+					throw new Error(error.message);
+				}
 			} else {
 				throw new Error("No se puede agregar un objeto vacío");
 			}
@@ -52,9 +60,13 @@ module.exports = class FileDataHandler {
 	 */
 	async getById(queryId) {
 		try {
-			const data = await fs.readFile(this.fileName, {
-				encoding: "utf-8",
-			});
+			let data = "[]";
+			try {
+				data = await fs.readFile(this.fileName, {
+					encoding: "utf-8",
+				});
+			} catch {}
+
 			let fileData = JSON.parse(data);
 			let result = fileData.find((item) => item.id === parseInt(queryId));
 			return result;
@@ -69,9 +81,12 @@ module.exports = class FileDataHandler {
 	 */
 	async getAll() {
 		try {
-			const data = await fs.readFile(this.fileName, {
-				encoding: "utf-8",
-			});
+			let data = "[]";
+			try {
+				data = await fs.readFile(this.fileName, {
+					encoding: "utf-8",
+				});
+			} catch {}
 			return JSON.parse(data);
 		} catch (error) {
 			throw new Error(error.message);

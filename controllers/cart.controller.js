@@ -1,9 +1,11 @@
-const FileDataHandler = require("../FileDataHandler");
-const fileHandler = new FileDataHandler("carrito.json");
+const logger = require("tracer").colorConsole();
+const { DAO } = require("../config");
+const CartDataHandler = DAO.carritos;
+const ProductDataHandler = DAO.productos;
 
 const createCart = async (req, res) => {
 	try {
-		let new_cart_id = await fileHandler.save({
+		let new_cart_id = await CartDataHandler.save({
 			timestamp: Date.now(),
 			productos: [],
 		});
@@ -12,6 +14,7 @@ const createCart = async (req, res) => {
 			...req.body,
 		});
 	} catch (error) {
+		logger.error(error.message);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -21,12 +24,13 @@ const createCart = async (req, res) => {
 
 const deleteCart = async (req, res) => {
 	try {
-		await fileHandler.deleteById(req.params.id);
+		await CartDataHandler.deleteById(req.params.id);
 		res.status(200).json({
 			status: 200,
 			message: `Cart with id ${req.params.id} deleted succesfully`,
 		});
 	} catch (error) {
+		logger.error(error.message);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -36,9 +40,10 @@ const deleteCart = async (req, res) => {
 
 const getCartProducts = async (req, res) => {
 	try {
-		let { productos } = await fileHandler.getById(req.params.id);
+		let { productos } = await CartDataHandler.getById(req.params.id);
 		res.status(200).json(productos);
 	} catch (error) {
+		logger.error(error.message);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -48,14 +53,47 @@ const getCartProducts = async (req, res) => {
 
 const addProductToCart = async (req, res) => {
 	try {
-		const productFileHandler = new FileDataHandler("productos.json");
-		let { id } = req.body;
-		let product = await productFileHandler.getById(id);
-		let cart = await fileHandler.getById(req.params.id);
-		cart.productos.push(product);
-		await fileHandler.modifyItem(cart);
+		let { productos } = req.body;
+		let cart = await CartDataHandler.getById(req.params.id);
+
+		for (const item of productos) {
+			let product = await ProductDataHandler.getById(item.id);
+
+			switch (process.argv[2]) {
+				case "mongo":
+					await CartDataHandler.addProduct(
+						cart,
+						product,
+						item.quantity
+					);
+					break;
+
+				case "archivo":
+					cart.productos.push({
+						item: product,
+						quantity: item.quantity,
+					});
+				case "firebase":
+					await CartDataHandler.addProduct(
+						cart,
+						product,
+						item.quantity
+					);
+					break;
+				default:
+					break;
+			}
+		}
+
+		if (process.argv[2] === "archivo") {
+			await CartDataHandler.modifyItem(cart);
+		} else {
+			cart = await CartDataHandler.getById(req.params.id);
+		}
+
 		res.status(200).json(cart);
 	} catch (error) {
+		logger.error(error.message);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -65,14 +103,32 @@ const addProductToCart = async (req, res) => {
 
 const deleteProductFromCart = async (req, res) => {
 	try {
-		let cart = await fileHandler.getById(req.params.id);
-		let filteredData = cart.productos.filter(
-			(item) => item.id !== parseInt(req.params.id_prod)
-		);
-		let newData = { ...cart, productos: filteredData };
-		await fileHandler.modifyItem(newData);
+		let product_id = parseInt(req.params.id_prod);
+		let cart = await CartDataHandler.getById(req.params.id);
+		let newData;
+		switch (process.argv[2]) {
+			case "mongo":
+				await CartDataHandler.removeProduct(req.params.id, product_id);
+				break;
+			case "archivo":
+				let filteredData = cart.productos.filter(
+					(order) => order.item.id !== product_id
+				);
+				newData = { ...cart, productos: filteredData };
+				await CartDataHandler.modifyItem(newData);
+			case "firebase":
+				await CartDataHandler.removeProduct(cart, product_id);
+				break;
+			default:
+				break;
+		}
+
+		if (process.argv[2] !== "archivo") {
+			newData = await CartDataHandler.getById(req.params.id);
+		}
 		res.status(200).json(newData);
 	} catch (error) {
+		logger.error(error.message);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
