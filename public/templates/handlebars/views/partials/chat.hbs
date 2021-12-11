@@ -4,32 +4,86 @@
 	<h2>Chat</h2>
 	<div class="w-100 mb-5 p-2 border border-2 rounded">
 		<form
-			class="d-flex justify-content-evenly align-items-center w-100"
+			class="d-flex flex-column justify-content-evenly align-items-center w-100"
 			style="margin: 0; margin-top: .65rem"
 		>
-			<div class="input-group" style="width: 40%;">
-				<input
-					type="email"
-					id="email"
-					name="email"
-					class="form-control rounded"
-					placeholder="Tu email"
-				/>
+			<div class="d-flex flex-row w-100 justify-content-evenly">
+				<div class="input-group" style="width: 45%;">
+					<input
+						type="email"
+						id="email"
+						name="email"
+						class="form-control rounded"
+						placeholder="Tu email"
+					/>
+				</div>
+				<div class="input-group" style="width: 45%;">
+					<input
+						type="text"
+						id="alias"
+						name="alias"
+						class="form-control rounded"
+						placeholder="Tu alias"
+					/>
+				</div>
 			</div>
-			<div class="input-group" style="width: 40%;">
-				<input
-					type="text"
-					id="message"
-					name="message"
-					class="form-control rounded"
-					placeholder="Tu mensaje"
-				/>
+			<div class="d-flex flex-row w-100 mt-2 justify-content-evenly">
+				<div class="input-group" style="width: 45%;">
+					<input
+						type="text"
+						id="nombre"
+						name="nombre"
+						class="form-control rounded"
+						placeholder="Tu nombre"
+					/>
+				</div>
+				<div class="input-group" style="width: 45%;">
+					<input
+						type="text"
+						id="apellido"
+						name="apellido"
+						class="form-control rounded"
+						placeholder="Tu apellido"
+					/>
+				</div>
 			</div>
-			<button
-				class="btn btn-success rounded"
-				type="button"
-				onclick="sendMessage()"
-			>Enviar</button>
+			<div class="d-flex flex-row w-100 mt-2 justify-content-evenly">
+				<div class="input-group" style="width: 45%;">
+					<input
+						type="number"
+						id="edad"
+						name="edad"
+						class="form-control rounded"
+						placeholder="Tu edad"
+					/>
+				</div>
+				<div class="input-group" style="width: 45%;">
+					<input
+						type="text"
+						id="avatar"
+						name="avatar"
+						class="form-control rounded"
+						placeholder="Link a tu avatar"
+					/>
+				</div>
+			</div>
+			<div class="d-flex flex-row w-100 mt-3 justify-content-evenly">
+				<div class="input-group" style="width: 80%;">
+					<input
+						type="text"
+						id="message"
+						name="message"
+						class="form-control rounded"
+						placeholder="Tu mensaje"
+					/>
+				</div>
+				<button
+					class="btn btn-success rounded"
+					type="button"
+					onclick="sendMessage()"
+				>Enviar</button>
+			</div>
+
 		</form>
 		<hr />
 		<div id="messages">

@@ -1,4 +1,21 @@
+//const normalizr = window.normalizr;
 const socket = io();
+
+const schemaAuthor = new normalizr.schema.Entity(
+	"authors",
+	{},
+	{ idAttribute: "email" }
+);
+
+const schemaMessage = new normalizr.schema.Entity(
+	"messages",
+	{
+		author: schemaAuthor,
+	},
+	{ idAttribute: "timestamp" }
+);
+
+const messagesSchema = [schemaMessage];
 
 const addProduct = () => {
 	const title = document.getElementById("title").value;
@@ -26,6 +43,11 @@ const addProduct = () => {
 const sendMessage = () => {
 	const email = document.getElementById("email").value;
 	const message = document.getElementById("message").value;
+	const nombre = document.getElementById("nombre").value;
+	const apellido = document.getElementById("apellido").value;
+	const alias = document.getElementById("alias").value;
+	const avatar = document.getElementById("avatar").value;
+	const edad = parseInt(document.getElementById("edad").value);
 
 	if (!email) {
 		alert("Email inválido!");
@@ -37,9 +59,34 @@ const sendMessage = () => {
 		return;
 	}
 
+	if (!nombre || !apellido) {
+		alert("Completá tu nombre y apellido!");
+		return;
+	}
+
+	if (!edad) {
+		alert("Completá tu edad!");
+		return;
+	}
+
+	if (edad < 10 || edad > 100) {
+		alert("La edad debe ser un número entre 10 y 100");
+		return;
+	}
+
+	if (!alias || !avatar) {
+		alert("Completá tu alias y/o avatar!");
+		return;
+	}
+
 	const messageSent = {
 		email,
 		message,
+		nombre,
+		apellido,
+		alias,
+		avatar,
+		edad,
 		timestamp: Date.now(),
 	};
 	socket.emit("message", messageSent);
@@ -47,50 +94,74 @@ const sendMessage = () => {
 	document.getElementById("message").value = "";
 };
 
-const renderProducts = (data) => {
-	if (data && data.length > 0) {
-		const html = data
-			.map((item) => {
-				return `
-					<tr>
-						<th scope="row">${item.id}</th>
-						<td>${item.title}</td>
-						<td>${item.price}</td>
-						<td><img src=${item.thumbnail} alt="Foto ${item.title}"></td>
-					</tr>
-				`;
-			})
-			.join(" ");
-		document.getElementById("products-table").innerHTML = html;
-	} else {
+const renderProducts = async () => {
+	try {
+		const { data } = await axios.get(
+			"http://localhost:8080/api/productos-test"
+		);
+		if (data && data.length > 0) {
+			const html = data
+				.map((item, i) => {
+					return `
+						<tr>
+							<th scope="row">${item.id ?? i + 1}</th>
+							<td>${item.title}</td>
+							<td>${item.price}</td>
+							<td><img src=${item.thumbnail} alt="Foto ${item.title}"></td>
+						</tr>
+					`;
+				})
+				.join(" ");
+			document.getElementById("products-table").innerHTML = html;
+		} else {
+			const html = `
+				<div class="alert alert-warning" role="alert">
+					No hay productos para mostrar
+				</div>
+			`;
+			document.getElementById("products").innerHTML = html;
+		}
+	} catch (error) {
+		console.error(error.message);
 		const html = `
-			<div class="alert alert-warning" role="alert">
-				No hay productos para mostrar
-			</div>
-		`;
+				<div class="alert alert-error" role="alert">
+					Ha ocurrido un error cargando los productos
+				</div>
+			`;
 		document.getElementById("products").innerHTML = html;
 	}
 };
 
 const renderMessages = (messages) => {
-	if (messages && messages.length > 0) {
-		const html = messages
-			.map((message) => {
-				return `
-				<p>
-					<span style="color: blue; font-weight: 800;">
-						${message.email}
-					</span>
-					<span style="color:chocolate">
-						[${message.date}]:
-					</span>
-					<span style="color: olivedrab; font-style: italic">
-						${message.message}
-					</span>
-				</p>
-			`;
-			})
-			.join(" ");
+	const { entities, result } = normalizr.denormalize(
+		messages,
+		messagesSchema
+	);
+	console.log("entities:", entities);
+	console.log("result:", result);
+	let html = "";
+	if (result.length > 0) {
+		result.forEach((message_id) => {
+			html += `
+					<p>
+						<img src=${
+							entities["authors"][
+								entities["messages"][`${message_id}`].author
+							].avatar
+						} />
+						<span style="color: blue; font-weight: 800;">
+							${entities["authors"][entities["messages"][`${message_id}`].author].alias}
+						</span>
+						<span style="color:chocolate">
+							[${entities["messages"][`${message_id}`].date}]:
+						</span>
+						<span style="color: olivedrab; font-style: italic">
+							${entities["messages"][`${message_id}`].text}
+						</span>
+					</p>
+				`; //
+		});
+
 		document.getElementById("messages").innerHTML = html;
 	} else {
 		const html = `
@@ -102,5 +173,6 @@ const renderMessages = (messages) => {
 	}
 };
 
-socket.on("products", (products) => renderProducts(products));
+//socket.on("products", (products) => renderProducts(products));
 socket.on("messages", (messages) => renderMessages(messages));
+renderProducts();
