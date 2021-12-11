@@ -137,8 +137,6 @@ const renderMessages = (messages) => {
 		messages,
 		messagesSchema
 	);
-	console.log("entities:", entities);
-	console.log("result:", result);
 	let html = "";
 	if (result.length > 0) {
 		result.forEach((message_id) => {
