@@ -1,4 +1,3 @@
-//const normalizr = window.normalizr;
 const socket = io();
 
 const schemaAuthor = new normalizr.schema.Entity(
@@ -171,6 +170,116 @@ const renderMessages = (messages) => {
 	}
 };
 
+//Session
+let userName;
+
+window.onload = async () => {
+	const loginDiv = document.getElementById("login");
+
+	try {
+		const sessionResponse = await axios({
+			method: "GET",
+			url: "http://localhost:8080/session/",
+			headers: {
+				"Content-type": "application/json;charset=utf-8",
+				"Allow-Access-Control-Origin": "*",
+			},
+		});
+
+		if (sessionResponse.data.status === "logged") {
+			loginDiv.innerHTML = `
+				<div class="alert alert-success d-flex justify-content-between align-items-center m-0" role="alert">
+					<h6 style="margin: 0">Bienvenido ${sessionResponse.data.name}!</h6>
+					<button class="btn btn-danger" type="button" onclick="handleLogout()" >Logout</button>
+				</div>
+			`;
+		} else {
+			loginDiv.innerHTML = `
+				<div class="card-body" id="card-body">
+					<h5 class="card-title">Login del usuario</h5>
+					<div class="input-group mb-3">
+						<input
+							type="text"
+							class="form-control"
+							placeholder="Ingrese su nombre"
+							aria-label="Username"
+							id="username-input"
+						/>
+						<button
+							class="btn btn-primary"
+							type="button"
+							id="login-button"
+						>
+							Login
+						</button>
+					</div>
+				</div>
+			`;
+			const loginButton = document.getElementById("login-button");
+
+			loginButton.addEventListener("click", async () => {
+				const userInput =
+					document.getElementById("username-input").value;
+
+				try {
+					const response = await axios({
+						method: "POST",
+						url: "http://localhost:8080/session/login",
+						headers: {
+							"Content-type": "application/json;charset=utf-8",
+							"Allow-Access-Control-Origin": "*",
+						},
+						data: JSON.stringify({ name: userInput }),
+					});
+
+					if (response.data) {
+						deleteNodes(loginDiv);
+						loginDiv.innerHTML = `
+						<div class="alert alert-success d-flex justify-content-between align-items-center m-0" role="alert">
+							<h6 style="margin: 0">Bienvenido ${response.data.name}!</h6>
+							<button class="btn btn-danger" type="button" onclick="handleLogout()" >Logout</button>
+						</div>
+					`;
+						userName = response.data.name;
+					}
+				} catch (error) {
+					console.error(error);
+				}
+			});
+		}
+	} catch (error) {
+		console.error(error);
+	}
+};
+
+const handleLogout = async () => {
+	const loginDiv = document.getElementById("login");
+
+	let response = await axios({
+		method: "GET",
+		url: "http://localhost:8080/session/logout",
+		headers: {
+			"Content-type": "application/json;charset=utf-8",
+			"Allow-Access-Control-Origin": "*",
+		},
+	});
+
+	if (response.data) {
+		deleteNodes(loginDiv);
+		loginDiv.innerHTML = `
+			<div class="alert alert-warning d-flex justify-content-between align-items-center m-0" role="alert">
+				<h6 style="margin: 0">Hasta luego ${userName || ""}!</h6>
+			</div>	
+		`;
+	}
+};
+
 //socket.on("products", (products) => renderProducts(products));
 socket.on("messages", (messages) => renderMessages(messages));
 renderProducts();
+
+function deleteNodes(parent) {
+	while (parent.firstChild) {
+		parent.removeChild(parent.lastChild);
+	}
+}
