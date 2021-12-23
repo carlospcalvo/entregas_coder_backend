@@ -1,0 +1,40 @@
+<div
+	class="card mt-3"
+	id="login-card"
+	style="width: 25rem; border-radius: 8px; box-shadow: 0px 7px 21px 6px rgba(0,0,0,0.75);"
+>
+	<div class="card-body d-flex flex-column">
+		<h5 class="mb-3" style="text-align: center;">Login</h5>
+		<div id="login-card-error"></div>
+		<div class="form-floating mb-3">
+			<input
+				type="email"
+				class="form-control"
+				id="loginEmail"
+				placeholder="juan@gmail.com"
+			/>
+			<label for="floatingInput">Email</label>
+		</div>
+		<div class="form-floating">
+			<input
+				type="password"
+				class="form-control"
+				id="loginPassword"
+				placeholder="Contraseña"
+			/>
+			<label for="floatingPassword">Contraseña</label>
+		</div>
+		<div class="mt-3 align-self-center">
+			<p style="margin: 0;">
+				Todavía no tenés una cuenta? Registrate
+				<a href="/registrate">acá</a>
+			</p>
+
+		</div>
+		<button
+			class="btn btn-primary mt-3 w-75 align-self-center"
+			type="button"
+			onclick="login()"
+		>Ingresar</button>
+	</div>
+</div>

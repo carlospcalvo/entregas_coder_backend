@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const logger = require("tracer").colorConsole();
 const Message = require("./models/message");
+const Producto = require("./models/product");
+const User = require("./models/user");
 
 module.exports = class MongoDataHandler {
 	/**
@@ -9,14 +11,22 @@ module.exports = class MongoDataHandler {
 	 * @param {mongoose.Schema} schema
 	 */
 	constructor(schemaName) {
-		if (schemaName === "Messages") {
-			this.model = Message;
-		} else {
-			throw new Error(
-				`Error connecting to mongo: Schema ${schemaName} not found.`
-			);
+		switch (schemaName) {
+			case "Messages":
+				this.model = Message;
+				break;
+			case "Products":
+				this.model = Producto;
+				break;
+			case "Users":
+				this.model = User;
+			default:
+				throw new Error(
+					`Error connecting to mongo: Schema ${schemaName} not found.`
+				);
 		}
 	}
+
 	/**
 	 * Saves an object in database.
 	 * @param {Object} newData Object to be saved.
@@ -26,11 +36,9 @@ module.exports = class MongoDataHandler {
 		try {
 			let lastId = await this.model
 				.find({})
-				.select({ id: 1 })
 				.sort({ id: "desc" })
 				.limit(1);
 			let id = lastId.length > 0 ? parseInt(lastId[0].id) + 1 : 1;
-
 			let result = await this.model({ ...newData, id }).save();
 			logger.info(
 				`${this.model.modelName} created: ${JSON.stringify(
@@ -90,10 +98,19 @@ module.exports = class MongoDataHandler {
 	/**
 	 * Modifies an item by replacing it (PUT)
 	 * @param {Object} item Item to be modified
+	 * @return {Object} New item data
 	 */
 	async modifyItem(item) {
 		try {
-			await this.model.findOneAndReplace({ id: item.id }, item);
+			return await this.model.findOneAndReplace(
+				{ id: parseInt(item.id) },
+				item,
+				{
+					returnDocument: "after",
+					projection: { _id: 0 },
+					lean: true,
+				}
+			);
 		} catch (error) {
 			throw new Error(error.message);
 		}
