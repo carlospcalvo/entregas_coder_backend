@@ -9,14 +9,16 @@ const logger = require("tracer").colorConsole();
 const datefns = require("date-fns");
 const configEngine = require("./engine.config");
 const DatabaseHandler = require("./database/DatabaseHandler");
-const config = require("./database/config");
 const router = require("./routes/productos");
 const { normalizeMessages } = require("./controllers/messages.controller");
 const userRouter = require("./routes/user");
+const parseArgs = require("minimist");
+const randomRouter = require("./routes/random");
+require("dotenv").config();
 
 // Mongo
 mongoose
-	.connect(config.mongo.url, {
+	.connect(process.env.MONGO_URL, {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 	})
@@ -27,7 +29,7 @@ mongoose
 const app = express();
 const httpServer = new HttpServer(app);
 const io = new IOServer(httpServer);
-const PORT = 8080;
+const PORT = parseArgs(process.argv.slice(2)).PORT || 8080;
 let messages = [];
 let products = [];
 const messageHandler = new DatabaseHandler("Messages");
@@ -37,7 +39,7 @@ const productHandler = new DatabaseHandler("Products");
 app.use(
 	session({
 		store: mongoStore.create({
-			mongoUrl: config.mongo.url,
+			mongoUrl: process.env.MONGO_URL,
 			mongoOptions: {
 				useNewUrlParser: true,
 				useUnifiedTopology: true,
@@ -76,6 +78,24 @@ app.get("/login", (req, res) => {
 
 app.get("/registrate", (req, res) => {
 	res.render("signup");
+});
+
+app.use("/api/randoms", randomRouter);
+
+app.get("/info/data", (req, res) => {
+	res.json({
+		entryArgs: process.argv,
+		OS: process.platform,
+		nodeVersion: process.version,
+		totalReservedMemory: process.memoryUsage().rss,
+		execPath: process.execPath,
+		processId: process.pid,
+		projectFolder: process.mainModule.path,
+	});
+});
+
+app.get("/info", (req, res) => {
+	res.render("info");
 });
 
 app.get("/", (req, res) => {

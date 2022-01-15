@@ -97,7 +97,7 @@ const renderProducts = async () => {
 	if (window.location.pathname === "/") {
 		try {
 			const { data } = await axios.get(
-				"http://localhost:8080/api/productos"
+				`http://localhost:8080/api/productos`
 			);
 			if (data && data.length > 0) {
 				const html = data
@@ -184,7 +184,7 @@ window.onload = async () => {
 		try {
 			const sessionResponse = await axios({
 				method: "GET",
-				url: "http://localhost:8080/user/session",
+				url: `http://localhost:8080/user/session`,
 				headers: {
 					"Content-type": "application/json;charset=utf-8",
 					"Allow-Access-Control-Origin": "*",
@@ -218,6 +218,92 @@ window.onload = async () => {
 		} catch (error) {
 			console.error(error);
 		}
+	} else if (window.location.pathname === "/info") {
+		console.log("Retrieving process info...");
+		const infoDiv = document.getElementById("info");
+		try {
+			const { data } = await axios({
+				method: "GET",
+				url: `http://localhost:8080/info/data`,
+				headers: {
+					"Content-type": "application/json;charset=utf-8",
+					"Allow-Access-Control-Origin": "*",
+				},
+			});
+
+			if (data) {
+				const {
+					entryArgs,
+					OS,
+					nodeVersion,
+					totalReservedMemory,
+					execPath,
+					processId,
+					projectFolder,
+				} = data;
+				let argsList = "";
+
+				entryArgs.forEach((entry) => {
+					argsList += `<li>${entry}</li>`;
+				});
+
+				infoDiv.innerHTML = `
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-start">
+						<h3 class="text-center">Argumentos de entrada</h3>
+						<hr />
+						<ol>
+							${argsList}
+						</ol>
+					</div>
+				</div>
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-center">
+						<h3>Sistema operativo</h3>
+						<hr />
+						<span>${OS}</span>
+					</div>
+				</div>
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-center">
+						<h3>Versión Node</h3>
+						<hr />
+						<span>${nodeVersion}</span>
+					</div>
+				</div>
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-center">
+						<h3>Memoria total reservada (rss)</h3>
+						<hr />
+						<span>${totalReservedMemory} bytes</span>
+					</div>
+				</div>
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-start">
+						<h3 class="text-center">Path de ejecución</h3>
+						<hr />
+						<span>${execPath}</span>
+					</div>
+				</div>
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-center">
+						<h3 class="text-center">Process id</h3>
+						<hr />
+						<span>${processId}</span>
+					</div>
+				</div>
+				<div class="card m-2" style="background-color: lightgrey;">
+					<div class="card-body text-start">
+						<h3 class="text-center">Carpeta del proyecto</h3>
+						<hr />
+						<span>${projectFolder}</span>
+					</div>
+				</div>
+			`;
+			}
+		} catch (error) {
+			console.error(error);
+		}
 	}
 	//socket.on("products", (products) => renderProducts(products));
 	socket.on("messages", (messages) => renderMessages(messages));
@@ -229,7 +315,7 @@ const handleLogout = async () => {
 
 	let response = await axios({
 		method: "GET",
-		url: "http://localhost:8080/user/logout",
+		url: `http://localhost:8080/user/logout`,
 		headers: {
 			"Content-type": "application/json;charset=utf-8",
 			"Allow-Access-Control-Origin": "*",
