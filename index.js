@@ -14,152 +14,208 @@ const { normalizeMessages } = require("./controllers/messages.controller");
 const userRouter = require("./routes/user");
 const parseArgs = require("minimist");
 const randomRouter = require("./routes/random");
+const cluster = require("cluster");
+const { fork } = require("child_process");
+const CPUsNum = require("os").cpus().length;
 require("dotenv").config();
 
-// Mongo
-mongoose
-	.connect(process.env.MONGO_URL, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
-	.then(() => logger.info("Connected to MongoDB!"))
-	.catch((err) => logger.fatal("Error connecting to MongoDB: ", err.stack));
+const serverMode = parseArgs(process.argv.slice(2)).cluster
+	? "cluster"
+	: "fork";
 
-// Initial config
-const app = express();
-const httpServer = new HttpServer(app);
-const io = new IOServer(httpServer);
-const PORT = parseArgs(process.argv.slice(2)).PORT || 8080;
-let messages = [];
-let products = [];
-const messageHandler = new DatabaseHandler("Messages");
-const productHandler = new DatabaseHandler("Products");
+if (serverMode === "cluster") {
+	if (cluster.isMaster) {
+		logger.info(
+			`Cluster Master process (PID ${process.pid}) is running...`
+		);
 
-// Passport & session
-app.use(
-	session({
-		store: mongoStore.create({
-			mongoUrl: process.env.MONGO_URL,
-			mongoOptions: {
+		for (let i = 0; i < CPUsNum; i++) {
+			cluster.fork();
+		}
+
+		cluster.on("exit", (worker, code, signal) => {
+			logger.warn(`Cluster Worker (PID ${worker.process.pid}) died!`);
+		});
+	} else {
+		logger.info(`Cluster Worker (PID ${process.pid}) is running...`);
+		// Mongo
+		mongoose
+			.connect(process.env.MONGO_URL, {
 				useNewUrlParser: true,
 				useUnifiedTopology: true,
-			},
-		}),
-		secret: "passport_auth",
-		cookie: {
-			maxAge: 300_000,
-		},
-		rolling: true,
-		resave: true,
-		saveUninitialized: false,
-	})
-);
+			})
+			.then(() => logger.info("Connected to MongoDB!"))
+			.catch((err) =>
+				logger.fatal("Error connecting to MongoDB: ", err.stack)
+			);
 
-app.use(passport.initialize());
-app.use(passport.session());
+		// Initial config
+		const app = express();
+		const httpServer = new HttpServer(app);
+		// const io = new IOServer(httpServer);
+		const PORT = parseArgs(process.argv.slice(2)).PORT || 8080;
+		// let messages = [];
+		// let products = [];
+		// const messageHandler = new DatabaseHandler("Messages");
+		// const productHandler = new DatabaseHandler("Products");
 
-// Middlewares
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.use((req, res, next) => {
-	logger.trace(`Incoming request: [${req.method}] ${req.originalUrl}`);
-	next();
-});
+		// Passport & session
+		app.use(
+			session({
+				store: mongoStore.create({
+					mongoUrl: process.env.MONGO_URL,
+					mongoOptions: {
+						useNewUrlParser: true,
+						useUnifiedTopology: true,
+					},
+				}),
+				secret: "passport_auth",
+				cookie: {
+					maxAge: 300_000,
+				},
+				rolling: true,
+				resave: true,
+				saveUninitialized: false,
+			})
+		);
 
-// Routes
-app.use("/user", userRouter);
+		app.use(passport.initialize());
+		app.use(passport.session());
 
-app.use("/api/productos", router);
-
-app.get("/login", (req, res) => {
-	res.render("login");
-});
-
-app.get("/registrate", (req, res) => {
-	res.render("signup");
-});
-
-app.use("/api/randoms", randomRouter);
-
-app.get("/info/data", (req, res) => {
-	res.json({
-		entryArgs: process.argv,
-		OS: process.platform,
-		nodeVersion: process.version,
-		totalReservedMemory: process.memoryUsage().rss,
-		execPath: process.execPath,
-		processId: process.pid,
-		projectFolder: process.mainModule.path,
-	});
-});
-
-app.get("/info", (req, res) => {
-	res.render("info");
-});
-
-app.get("/", (req, res) => {
-	res.render("index");
-});
-
-app.get("*", (req, res) => {
-	res.status(404).send("Page not found!");
-});
-
-app.use((err, req, res, next) => {
-	logger.fatal(err);
-});
-
-httpServer
-	.listen(PORT, async () => {
-		await configEngine(app);
-		logger.info(`Server running on port ${PORT}!`);
-	})
-	.on("error", (error) => logger.fatal("[ERROR]", error.message));
-
-// Sockets
-
-io.on("connection", async (socket) => {
-	//logger.log("Usuario conectado!");
-
-	messages = await messageHandler.getAll();
-	products = await productHandler.getAll();
-
-	socket.emit("messages", normalizeMessages(messages));
-	socket.emit("products", products);
-
-	socket.on("new-product", (data) => {
-		let id = 1;
-		products.forEach((item) => {
-			if (item.id > id) {
-				id = item.id;
-			}
+		// Middlewares
+		app.use(express.json());
+		app.use(express.urlencoded({ extended: true }));
+		app.use(express.static("public"));
+		app.use((req, res, next) => {
+			logger.trace(
+				`[Cluster ${process.pid}] Incoming request: [${req.method}] ${req.originalUrl}`
+			);
+			next();
 		});
-		products.push({ id: id + 1, ...data });
-		io.sockets.emit("products", products);
-		productHandler.save(data);
+
+		// Routes
+		app.use("/user", userRouter);
+
+		app.use("/api/productos", router);
+
+		app.get("/login", (req, res) => {
+			res.render("login");
+		});
+
+		app.get("/registrate", (req, res) => {
+			res.render("signup");
+		});
+
+		app.use("/api/randoms", randomRouter);
+
+		app.get("/info/data", (req, res) => {
+			res.json({
+				entryArgs: process.argv,
+				OS: process.platform,
+				nodeVersion: process.version,
+				totalReservedMemory: process.memoryUsage().rss,
+				execPath: process.execPath,
+				processId: process.pid,
+				projectFolder: process.mainModule.path,
+				CPUS: CPUsNum,
+			});
+		});
+
+		app.get("/info", (req, res) => {
+			res.render("info");
+		});
+
+		app.get("/", (req, res) => {
+			res.render("index");
+		});
+
+		app.get("*", (req, res) => {
+			res.status(404).send("Page not found!");
+		});
+
+		app.use((err, req, res, next) => {
+			logger.fatal(err);
+		});
+
+		httpServer
+			.listen(PORT, async () => {
+				await configEngine(app);
+				logger.info(
+					`Cluster worker ${process.pid} - Server running on port ${PORT}!`
+				);
+			})
+			.on("error", (error) =>
+				logger.fatal(
+					`Cluster worker ${process.pid} - [ERROR]`,
+					error.message
+				)
+			);
+
+		// Sockets
+
+		/* io.on("connection", async (socket) => {
+			//logger.log("Usuario conectado!");
+
+			messages = await messageHandler.getAll();
+			products = await productHandler.getAll();
+
+			socket.emit("messages", normalizeMessages(messages));
+			socket.emit("products", products);
+
+			socket.on("new-product", (data) => {
+				let id = 1;
+				products.forEach((item) => {
+					if (item.id > id) {
+						id = item.id;
+					}
+				});
+				products.push({ id: id + 1, ...data });
+				io.sockets.emit("products", products);
+				productHandler.save(data);
+			});
+
+			socket.on("message", async (data) => {
+				const message = {
+					author: {
+						email: data.email,
+						nombre: data.nombre,
+						apellido: data.apellido,
+						edad: data.edad,
+						alias: data.alias,
+						avatar: data.avatar,
+					},
+					text: data.message,
+					date: datefns.format(
+						parseInt(data.timestamp),
+						"dd/MM/yyyy HH:mm:ss"
+					),
+					timestamp: data.timestamp,
+				};
+				messages.push(message);
+				const normalizedMessages = normalizeMessages(messages);
+				io.sockets.emit("messages", normalizedMessages);
+				await messageHandler.save(message);
+			});
+		}); */
+	}
+} else {
+	logger.info(
+		`[FORK MODE] Master process (PID ${process.pid}) is running...`
+	);
+
+	const forked = fork("./fork.js");
+
+	forked.on("message", (message) => {
+		if (message === "ready") {
+			logger.info(
+				`[FORK MODE] Child process (PID ${process.pid}) is running...`
+			);
+			const PORT = parseArgs(process.argv.slice(2)).PORT || 8080;
+			forked.send(JSON.stringify({ PORT }));
+		}
 	});
 
-	socket.on("message", async (data) => {
-		const message = {
-			author: {
-				email: data.email,
-				nombre: data.nombre,
-				apellido: data.apellido,
-				edad: data.edad,
-				alias: data.alias,
-				avatar: data.avatar,
-			},
-			text: data.message,
-			date: datefns.format(
-				parseInt(data.timestamp),
-				"dd/MM/yyyy HH:mm:ss"
-			),
-			timestamp: data.timestamp,
-		};
-		messages.push(message);
-		const normalizedMessages = normalizeMessages(messages);
-		io.sockets.emit("messages", normalizedMessages);
-		await messageHandler.save(message);
+	forked.on("exit", () => {
+		logger.warn(`[FORK MODE] Child process (PID ${forked.pid}) died!`);
 	});
-});
+}
