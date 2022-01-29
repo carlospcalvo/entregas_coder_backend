@@ -1,0 +1,8 @@
+[2022-01-28T23:33:35.582] [ERROR] console - [FORK MODE] Child process (PID 67689) died!
+[2022-01-28T23:33:52.076] [ERROR] console - [FORK MODE] Child process (PID 67721) died!
+[2022-01-28T23:34:20.510] [ERROR] console - [FORK MODE] Child process (PID 67766) died!
+[2022-01-28T23:58:14.374] [ERROR] console - [ERROR] - [FORK MODE] Child process (PID 69282) listen EADDRINUSE: address already in use :::8080
+[2022-01-28T23:58:42.891] [ERROR] console - [ERROR] - [FORK MODE] Child process (PID 69306) listen EADDRINUSE: address already in use :::8080
+[2022-01-29T00:00:28.639] [ERROR] console - [ERROR] - [FORK MODE] Child process (PID 69402) listen EADDRINUSE: address already in use :::8080
+[2022-01-29T00:15:20.264] [ERROR] console - [FORK MODE] Child process (PID 70129) died!
+[2022-01-29T00:16:09.586] [ERROR] console - [FORK MODE] Child process (PID 70274) died!

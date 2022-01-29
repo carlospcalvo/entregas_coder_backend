@@ -1,4 +1,4 @@
-const logger = require("tracer").colorConsole();
+const logger = require("../logger");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcrypt");
@@ -51,11 +51,11 @@ passport.use(
 				username,
 				password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
 			};
-			logger.debug("Creating user...");
+			logger.info("Creating user...");
 			let userCreated = await User.create(newUser);
 
 			logger.info(typeof userCreated);
-			logger.debug("User created!");
+			logger.info("User created!");
 			return done(null, userCreated);
 		} catch (error) {
 			logger.error(`Error in signup: ${error}`);

@@ -1,16 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { Server: HttpServer } = require("http");
-const { Server: IOServer } = require("socket.io");
+// const { Server: IOServer } = require("socket.io");
 const session = require("express-session");
 const passport = require("passport");
 const mongoStore = require("connect-mongo");
-const logger = require("tracer").colorConsole();
-const datefns = require("date-fns");
+const logger = require("./logger");
+// const datefns = require("date-fns");
 const configEngine = require("./engine.config");
-const DatabaseHandler = require("./database/DatabaseHandler");
+// const DatabaseHandler = require("./database/DatabaseHandler");
 const router = require("./routes/productos");
-const { normalizeMessages } = require("./controllers/messages.controller");
+// const { normalizeMessages } = require("./controllers/messages.controller");
 const userRouter = require("./routes/user");
 const parseArgs = require("minimist");
 const randomRouter = require("./routes/random");
@@ -34,7 +34,7 @@ if (serverMode === "cluster") {
 		}
 
 		cluster.on("exit", (worker, code, signal) => {
-			logger.warn(`Cluster Worker (PID ${worker.process.pid}) died!`);
+			logger.error(`Cluster Worker (PID ${worker.process.pid}) died!`);
 		});
 	} else {
 		logger.info(`Cluster Worker (PID ${process.pid}) is running...`);
@@ -46,7 +46,7 @@ if (serverMode === "cluster") {
 			})
 			.then(() => logger.info("Connected to MongoDB!"))
 			.catch((err) =>
-				logger.fatal("Error connecting to MongoDB: ", err.stack)
+				logger.error("Error connecting to MongoDB: ", err.stack)
 			);
 
 		// Initial config
@@ -87,7 +87,7 @@ if (serverMode === "cluster") {
 		app.use(express.urlencoded({ extended: true }));
 		app.use(express.static("public"));
 		app.use((req, res, next) => {
-			logger.trace(
+			logger.info(
 				`[Cluster ${process.pid}] Incoming request: [${req.method}] ${req.originalUrl}`
 			);
 			next();
@@ -129,12 +129,17 @@ if (serverMode === "cluster") {
 			res.render("index");
 		});
 
-		app.get("*", (req, res) => {
+		app.use((req, res) => {
+			logger.warn(
+				`Incoming request (404 - Not Found): [${req.method}] ${
+					req.headers.host + req.url
+				}`
+			);
 			res.status(404).send("Page not found!");
 		});
 
 		app.use((err, req, res, next) => {
-			logger.fatal(err);
+			logger.error(err);
 		});
 
 		httpServer
@@ -145,7 +150,7 @@ if (serverMode === "cluster") {
 				);
 			})
 			.on("error", (error) =>
-				logger.fatal(
+				logger.error(
 					`Cluster worker ${process.pid} - [ERROR]`,
 					error.message
 				)
@@ -155,13 +160,10 @@ if (serverMode === "cluster") {
 
 		/* io.on("connection", async (socket) => {
 			//logger.log("Usuario conectado!");
-
 			messages = await messageHandler.getAll();
 			products = await productHandler.getAll();
-
 			socket.emit("messages", normalizeMessages(messages));
 			socket.emit("products", products);
-
 			socket.on("new-product", (data) => {
 				let id = 1;
 				products.forEach((item) => {
@@ -173,7 +175,6 @@ if (serverMode === "cluster") {
 				io.sockets.emit("products", products);
 				productHandler.save(data);
 			});
-
 			socket.on("message", async (data) => {
 				const message = {
 					author: {
@@ -216,6 +217,6 @@ if (serverMode === "cluster") {
 	});
 
 	forked.on("exit", () => {
-		logger.warn(`[FORK MODE] Child process (PID ${forked.pid}) died!`);
+		logger.error(`[FORK MODE] Child process (PID ${forked.pid}) died!`);
 	});
 }

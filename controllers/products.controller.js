@@ -1,4 +1,5 @@
 const DatabaseHandler = require("../database/DatabaseHandler");
+const logger = require("../logger");
 const productHandler = new DatabaseHandler("Products");
 
 /**
@@ -11,6 +12,7 @@ const getAllProducts = async (req, res) => {
 		let products = await productHandler.getAll();
 		res.status(200).json(products);
 	} catch (error) {
+		logger.error(error);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -33,6 +35,7 @@ const postProduct = async (req, res) => {
 			throw new Error("Empty body!");
 		}
 	} catch (error) {
+		logger.error(error);
 		res.status(error_status).json({
 			status: error_status,
 			message: error.message,
@@ -51,6 +54,7 @@ const updateProduct = async (req, res) => {
 		let finalProduct = await productHandler.modifyItem(data);
 		res.status(200).json(finalProduct);
 	} catch (error) {
+		logger.error(error);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -71,6 +75,7 @@ const deleteProduct = async (req, res) => {
 			message: `Product with id ${req.params.id} deleted succesfully`,
 		});
 	} catch (error) {
+		logger.error(error);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -88,6 +93,7 @@ const getProductByID = async (req, res) => {
 		let product = await productHandler.getById(parseInt(req.params.id));
 		res.status(200).json(product);
 	} catch (error) {
+		logger.error(error);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -108,6 +114,7 @@ const productNotFound = async (req, res, next) => {
 			? next()
 			: res.status(404).json({ error: "Producto no encontrado" });
 	} catch (error) {
+		logger.error(error);
 		res.status(500).json({
 			status: 500,
 			message: error.message,

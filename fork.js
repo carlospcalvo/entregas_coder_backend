@@ -6,15 +6,13 @@ process.on("message", (params) => {
 	const session = require("express-session");
 	const passport = require("passport");
 	const mongoStore = require("connect-mongo");
-	const logger = require("tracer").colorConsole();
-	const datefns = require("date-fns");
+	const logger = require("./logger");
 	const configEngine = require("./engine.config");
-	const DatabaseHandler = require("./database/DatabaseHandler");
 	const router = require("./routes/productos");
-	const { normalizeMessages } = require("./controllers/messages.controller");
 	const userRouter = require("./routes/user");
-	const parseArgs = require("minimist");
 	const randomRouter = require("./routes/random");
+	const DatabaseHandler = require("./database/DatabaseHandler");
+	const { normalizeMessages } = require("./controllers/messages.controller");
 	require("dotenv").config();
 
 	// Mongo
@@ -25,18 +23,18 @@ process.on("message", (params) => {
 		})
 		.then(() => logger.info("Connected to MongoDB!"))
 		.catch((err) =>
-			logger.fatal("Error connecting to MongoDB: ", err.stack)
+			logger.error("Error connecting to MongoDB: ", err.stack)
 		);
 
 	// Initial config
 	const app = express();
 	const httpServer = new HttpServer(app);
-	// const io = new IOServer(httpServer);
+	const io = new IOServer(httpServer);
 	const PORT = JSON.parse(params).PORT || 8080;
-	// let messages = [];
-	// let products = [];
-	// const messageHandler = new DatabaseHandler("Messages");
-	// const productHandler = new DatabaseHandler("Products");
+	let messages = [];
+	let products = [];
+	const messageHandler = new DatabaseHandler("Messages");
+	const productHandler = new DatabaseHandler("Products");
 
 	// Passport & session
 	app.use(
@@ -66,7 +64,7 @@ process.on("message", (params) => {
 	app.use(express.urlencoded({ extended: true }));
 	app.use(express.static("public"));
 	app.use((req, res, next) => {
-		logger.trace(`Incoming request: [${req.method}] ${req.originalUrl}`);
+		logger.info(`Incoming request: [${req.method}] ${req.originalUrl}`);
 		next();
 	});
 
@@ -98,6 +96,7 @@ process.on("message", (params) => {
 	});
 
 	app.get("/info", (req, res) => {
+		console.log("a");
 		res.render("info");
 	});
 
@@ -105,12 +104,15 @@ process.on("message", (params) => {
 		res.render("index");
 	});
 
-	app.get("*", (req, res) => {
+	app.use((req, res) => {
+		logger.warn(
+			`Incoming request (404 - Not Found): [${req.method}] ${req.originalUrl}`
+		);
 		res.status(404).send("Page not found!");
 	});
 
 	app.use((err, req, res, next) => {
-		logger.fatal(err);
+		logger.error(err);
 	});
 
 	httpServer
@@ -121,7 +123,7 @@ process.on("message", (params) => {
 			);
 		})
 		.on("error", (error) =>
-			logger.fatal(
+			logger.error(
 				`[ERROR] - [FORK MODE] Child process (PID ${process.pid})`,
 				error.message
 			)
@@ -129,7 +131,7 @@ process.on("message", (params) => {
 
 	// Sockets
 
-	/* io.on("connection", async (socket) => {
+	io.on("connection", async (socket) => {
 		//logger.log("Usuario conectado!");
 
 		messages = await messageHandler.getAll();
@@ -139,6 +141,7 @@ process.on("message", (params) => {
 		socket.emit("products", products);
 
 		socket.on("new-product", (data) => {
+			logger.info("WebSocket - New Product");
 			let id = 1;
 			products.forEach((item) => {
 				if (item.id > id) {
@@ -151,6 +154,7 @@ process.on("message", (params) => {
 		});
 
 		socket.on("message", async (data) => {
+			logger.info("WebSocket - New Message");
 			const message = {
 				author: {
 					email: data.email,
@@ -172,7 +176,7 @@ process.on("message", (params) => {
 			io.sockets.emit("messages", normalizedMessages);
 			await messageHandler.save(message);
 		});
-	}); */
+	});
 });
 
 process.send("ready");

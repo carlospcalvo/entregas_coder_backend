@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "node benchmark.js",
 		"start": "nodemon"
 	},
 	"engines": {
@@ -14,7 +14,9 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"autocannon": "^7.6.0",
 		"bcrypt": "^5.0.1",
+		"compression": "^1.7.4",
 		"connect-mongo": "^4.6.0",
 		"date-fns": "^2.25.0",
 		"dotenv": "^11.0.0",
@@ -23,6 +25,7 @@
 		"express-session": "^1.17.2",
 		"faker": "^5.5.3",
 		"knex": "^0.95.14",
+		"log4js": "^6.4.1",
 		"minimist": "^1.2.5",
 		"mongoose": "^6.1.1",
 		"mysql": "^2.18.1",

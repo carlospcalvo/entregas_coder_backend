@@ -1,13 +1,12 @@
 const handlebars = require("express-handlebars");
-const logger = require("tracer").colorConsole();
-//const inquirer = require("inquirer");
+const logger = require("./logger");
 
 /**
  * Configures a template engine
  * @param {Express} app Express app to be configured
  */
 module.exports = async function configEngine(app) {
-	logger.log("Configurando servidor con Handlebars...");
+	logger.info("Configurando servidor con Handlebars...");
 	const hbs = handlebars.create({
 		extname: "hbs",
 		defaultLayout: "main.hbs",

@@ -21,6 +21,9 @@ module.exports = class MongoDataHandler {
 			case "Users":
 				this.model = User;
 			default:
+				logger.error(
+					`Error connecting to mongo: Schema ${schemaName} not found.`
+				);
 				throw new Error(
 					`Error connecting to mongo: Schema ${schemaName} not found.`
 				);
@@ -67,6 +70,7 @@ module.exports = class MongoDataHandler {
 				.lean();
 			return item[0];
 		} catch (error) {
+			logger.error(error);
 			throw new Error(error.message);
 		}
 	}
@@ -79,6 +83,7 @@ module.exports = class MongoDataHandler {
 		try {
 			return await this.model.find({}).select({ __v: 0, _id: 0 }).lean();
 		} catch (error) {
+			logger.error(error);
 			throw new Error(error.message);
 		}
 	}
@@ -91,6 +96,7 @@ module.exports = class MongoDataHandler {
 		try {
 			await this.model.deleteOne({ id: queryId });
 		} catch (error) {
+			logger.error(error);
 			throw new Error(error.message);
 		}
 	}
@@ -112,6 +118,7 @@ module.exports = class MongoDataHandler {
 				}
 			);
 		} catch (error) {
+			logger.error(error);
 			throw new Error(error.message);
 		}
 	}
@@ -123,6 +130,7 @@ module.exports = class MongoDataHandler {
 		try {
 			await this.model.deleteMany({});
 		} catch (error) {
+			logger.error(error);
 			throw new Error(error.message);
 		}
 	}
