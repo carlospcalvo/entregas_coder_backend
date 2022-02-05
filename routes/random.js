@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.get("/", (req, res) => {
 	const quantity = req.query.cant || 100_000_000;
-	const result = {};
+	/*const result = {};
 
 	for (let index = 0; index < quantity; index++) {
 		let number = getRandomNumber(1, 1000);
@@ -16,23 +16,9 @@ router.get("/", (req, res) => {
 		}
 	}
 
-	res.json(result);
+	res.json(result); */
 
-	/* let result;
-
-	const forked = fork("./randomCalc.js");
-
-	forked.on("message", (message) => {
-		if (message === "ready") {
-			forked.send(quantity.toString());
-		} else {
-			result = { ...result, ...message };
-		}
-	});
-
-	forked.on("exit", () => {
-		res.json(result);
-	}); */
+	res.json({ message: `I'm not calculating ${quantity} on Heroku...` });
 });
 
 function getRandomNumber(min, max) {
