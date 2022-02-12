@@ -14,10 +14,19 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"bcrypt": "^5.0.1",
+		"connect-mongo": "^4.6.0",
+		"date-fns": "^2.28.0",
+		"dotenv": "^16.0.0",
 		"express": "^4.17.1",
-		"firebase": "^9.6.0",
-		"firebase-admin": "^10.0.0",
+		"express-session": "^1.17.2",
+		"log4js": "^6.4.1",
+		"minimist": "^1.2.5",
 		"mongoose": "^6.0.14",
-		"tracer": "^1.1.5"
+		"multer": "^1.4.4",
+		"nodemailer": "^6.7.2",
+		"passport": "^0.5.2",
+		"passport-local": "^1.0.0",
+		"twilio": "^3.74.0"
 	}
 }

@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
-const Producto = require("./product");
 
 const cartSchema = new mongoose.Schema({
 	id: { type: Number, unique: true },
 	timestamp: { type: Number, default: Date.now() },
+	owner: { type: mongoose.mongo.ObjectId, required: true, unique: true },
+	isConfirmed: { type: Boolean, default: false },
 	productos: {
 		type: [
 			{

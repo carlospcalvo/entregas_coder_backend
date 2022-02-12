@@ -1,6 +1,7 @@
-const logger = require("tracer").colorConsole();
-const { DAO } = require("../config");
-const DataHandler = DAO.productos;
+// const logger = require("tracer").colorConsole();
+const logger = require("../config/logger");
+const { productos: DataHandler } = require("../daos/index");
+// const DataHandler = DAO.productos;
 
 /**
  * Returns a product if id is specified, else all products
@@ -220,10 +221,10 @@ const initializeProducts = async (PORT) => {
 	];
 
 	try {
-		logger.log("Loading products...");
+		logger.info("Loading products...");
 		let data = await DataHandler.getAll();
 		if (data.length === 0) {
-			logger.log("Product collection empty, initializing products...");
+			logger.info("Product collection empty, initializing products...");
 			for (const item of dummyData) {
 				await DataHandler.save(item);
 			}
@@ -232,7 +233,7 @@ const initializeProducts = async (PORT) => {
 		if (error.code !== "ENOENT") {
 			logger.error(error);
 		} else {
-			logger.log("Product collection empty, initializing products...");
+			logger.info("Product collection empty, initializing products...");
 			for (const item of dummyData) {
 				await DataHandler.save(item);
 			}

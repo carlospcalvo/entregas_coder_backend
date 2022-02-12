@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const logger = require("tracer").colorConsole();
+// const logger = require("tracer").colorConsole();
+const logger = require("../config/logger");
 const Producto = require("../models/product");
 const Carrito = require("../models/cart");
 
@@ -10,14 +11,17 @@ module.exports = class MongoDataHandler {
 	 * @param {mongoose.Schema} schema
 	 */
 	constructor(schemaName) {
-		if (schemaName === "Producto") {
-			this.model = Producto;
-		} else if (schemaName === "Carrito") {
-			this.model = Carrito;
-		} else {
-			throw new Error(
-				`Error connecting to mongo: Schema ${schemaName} not found.`
-			);
+		switch (schemaName) {
+			case "Producto":
+				this.model = Producto;
+				break;
+			case "Carrito":
+				this.model = Carrito;
+				break;
+			default:
+				throw new Error(
+					`Error connecting to mongo: Schema ${schemaName} not found.`
+				);
 		}
 	}
 	/**

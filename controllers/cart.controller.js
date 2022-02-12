@@ -1,11 +1,21 @@
-const logger = require("tracer").colorConsole();
-const { DAO } = require("../config");
+// const logger = require("tracer").colorConsole();
+const logger = require("../config/logger");
+const DAO = require("../daos/index");
 const CartDataHandler = DAO.carritos;
 const ProductDataHandler = DAO.productos;
+const transporter = require("../config/mailing");
+const { adminEmail } = require("../config/constants");
+const twilio = require("../config/twilio");
 
 const createCart = async (req, res) => {
 	try {
+		if (!req.session?.passport?.user) {
+			res.sendStatus(401);
+			return;
+		}
+
 		let new_cart_id = await CartDataHandler.save({
+			owner: req.session.passport.user,
 			timestamp: Date.now(),
 			productos: [],
 		});
@@ -58,41 +68,10 @@ const addProductToCart = async (req, res) => {
 
 		for (const item of productos) {
 			let product = await ProductDataHandler.getById(item.id);
-
-			switch (process.argv[2]) {
-				case "mongo":
-					await CartDataHandler.addProduct(
-						cart,
-						product,
-						item.quantity
-					);
-					break;
-
-				case "archivo":
-					cart.productos.push({
-						item: product,
-						quantity: item.quantity,
-					});
-				case "firebase":
-					await CartDataHandler.addProduct(
-						cart,
-						product,
-						item.quantity
-					);
-					break;
-				case "memoria":
-					CartDataHandler.addProduct(cart, product, item.quantity);
-					break;
-				default:
-					break;
-			}
+			await CartDataHandler.addProduct(cart, product, item.quantity);
 		}
 
-		if (process.argv[2] === "archivo") {
-			await CartDataHandler.modifyItem(cart);
-		} else {
-			cart = await CartDataHandler.getById(req.params.id);
-		}
+		cart = await CartDataHandler.getById(req.params.id);
 
 		res.status(200).json(cart);
 	} catch (error) {
@@ -107,32 +86,74 @@ const addProductToCart = async (req, res) => {
 const deleteProductFromCart = async (req, res) => {
 	try {
 		let product_id = parseInt(req.params.id_prod);
-		let cart = await CartDataHandler.getById(req.params.id);
 		let newData;
-		switch (process.argv[2]) {
-			case "mongo":
-				await CartDataHandler.removeProduct(req.params.id, product_id);
-				break;
-			case "archivo":
-				let filteredData = cart.productos.filter(
-					(order) => order.item.id !== product_id
-				);
-				newData = { ...cart, productos: filteredData };
-				await CartDataHandler.modifyItem(newData);
-			case "firebase":
-				await CartDataHandler.removeProduct(cart, product_id);
-				break;
-			case "memoria":
-				CartDataHandler.removeProduct(cart, product_id);
-				break;
-			default:
-				break;
-		}
+		await CartDataHandler.removeProduct(req.params.id, product_id);
 
-		if (process.argv[2] !== "archivo") {
-			newData = await CartDataHandler.getById(req.params.id);
-		}
+		newData = await CartDataHandler.getById(req.params.id);
 		res.status(200).json(newData);
+	} catch (error) {
+		logger.error(error.message);
+		res.status(500).json({
+			status: 500,
+			message: error.message,
+		});
+	}
+};
+
+const confirmCart = async (req, res) => {
+	try {
+		const Usuario = require("../models/user");
+		if (!req.session?.passport?.user) {
+			res.sendStatus(401);
+			return;
+		}
+		const { email, nombre, telefono } = await Usuario.findById(
+			req.session.passport.user
+		).lean();
+		const cart = await CartDataHandler.findCartByOwner(
+			req.session.passport.user
+		);
+		let html = `<h1>Datos del pedido</h1>`;
+
+		cart.productos.forEach((producto, i) => {
+			html += `
+				<h3>${producto.item.nombre}</h3>
+				<ul>
+					<li>Código: ${producto.item.codigo}</li>
+					<li>Descripción: ${producto.item.descripcion}</li>
+					<li>Cantidad: ${producto.quantity}</li>
+					<li>Precio: ${producto.item.precio}</li>
+					<li>Stock: ${producto.item.stock}</li>
+				</ul>
+			`;
+		});
+
+		const mailOptions = {
+			from: "CoderServer",
+			to: adminEmail,
+			subject: `Nuevo pedido de ${nombre} (${email})`,
+			html,
+		};
+
+		await transporter.sendMail(mailOptions);
+
+		await twilio.messages.create({
+			body: `Nuevo pedido de ${nombre} (${email})`,
+			from: "whatsapp:+14155238886",
+			to: `whatsapp:${telefono}`,
+		});
+
+		await twilio.messages.create({
+			body: "Su pedido ha sido recibido y está siendo procesado.",
+			from: "+1 845 552 2356",
+			to: `whatsapp:${telefono}`,
+		});
+		await CartDataHandler.deleteById(cart.id);
+
+		res.status(200).json({
+			status: 200,
+			message: "Pedido confirmado con éxito",
+		});
 	} catch (error) {
 		logger.error(error.message);
 		res.status(500).json({
@@ -148,4 +169,5 @@ module.exports = {
 	getCartProducts,
 	addProductToCart,
 	deleteProductFromCart,
+	confirmCart,
 };

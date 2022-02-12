@@ -1,5 +1,5 @@
 const express = require("express");
-const isAdmin = require("../controllers/auth/auth.controller");
+
 const {
 	getProducts,
 	postProduct,
@@ -12,10 +12,10 @@ const router = express.Router();
 
 router.get("/:id?", productNotFound, getProducts);
 
-router.post("/", isAdmin, postProduct);
+router.post("/", postProduct);
 
-router.put("/:id", isAdmin, productNotFound, updateProduct);
+router.put("/:id", productNotFound, updateProduct);
 
-router.delete("/:id", isAdmin, productNotFound, deleteProduct);
+router.delete("/:id", productNotFound, deleteProduct);
 
 module.exports = router;
