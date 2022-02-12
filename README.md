@@ -1,11 +1,3 @@
-# Auth mock config
-
-### Definir en `controllers/auth/auth.controllers.js` si se quiere ejecutar como admin o no
-
-```js
-const admin = true | false; // Por defecto es true
-```
-
 # Correr el proyecto localmente
 
 ### Ejecutar el archivo `index.js` especificando la base de datos a utilizar:
@@ -13,11 +5,11 @@ const admin = true | false; // Por defecto es true
 -   Usando node:
 
 ```
-node index.js mongo | firebase | archivo | memoria
+node index.js 
 ```
 
--   Usando nodemon especificando la base de datos a utilizar:
+-   Usando nodemon 
 
 ```
-nodemon index.js mongo | firebase | archivo | memoria
+nodemon index.js 
 ```
