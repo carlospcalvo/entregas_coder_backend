@@ -11,7 +11,7 @@ process.on("message", (params) => {
 	const router = require("./routes/productos");
 	const userRouter = require("./routes/user");
 	const randomRouter = require("./routes/random");
-	const DatabaseHandler = require("./database/DatabaseHandler");
+	const DatabaseHandler = require("./database/DAO");
 	const { normalizeMessages } = require("./controllers/messages.controller");
 	require("dotenv").config();
 
@@ -69,9 +69,9 @@ process.on("message", (params) => {
 	});
 
 	// Routes
-	app.use("/user", userRouter);
-
+	app.use("/api/user", userRouter);
 	app.use("/api/productos", router);
+	app.use("/api/randoms", randomRouter);
 
 	app.get("/login", (req, res) => {
 		res.render("login");
@@ -80,8 +80,6 @@ process.on("message", (params) => {
 	app.get("/registrate", (req, res) => {
 		res.render("signup");
 	});
-
-	app.use("/api/randoms", randomRouter);
 
 	app.get("/info/data", (req, res) => {
 		res.json({
@@ -132,8 +130,6 @@ process.on("message", (params) => {
 	// Sockets
 
 	io.on("connection", async (socket) => {
-		//logger.log("Usuario conectado!");
-
 		messages = await messageHandler.getAll();
 		products = await productHandler.getAll();
 

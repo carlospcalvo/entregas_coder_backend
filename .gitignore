@@ -1,2 +1,7 @@
 node_modules/
 .env
+.DS_Store
+public/uploads
+logs
+logs/error.log
+logs/warn.log

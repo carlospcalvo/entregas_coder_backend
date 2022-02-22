@@ -1,3 +1,1 @@
-[2022-01-28T22:49:06.363] [WARN] console - Incoming request to non-existent route: [GET] /api/
-[2022-01-28T22:50:56.767] [WARN] console - Incoming request to non-existent route: [GET] /info/data
-[2022-01-28T22:55:11.048] [WARN] console - Incoming request (404 - Not Found): [GET] /info/dataaaa
+[2022-02-21T22:31:51.509] [WARN] console - Incoming request (404 - Not Found): [POST] /api/user/session

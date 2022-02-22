@@ -1,16 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { Server: HttpServer } = require("http");
-// const { Server: IOServer } = require("socket.io");
 const session = require("express-session");
 const passport = require("passport");
 const mongoStore = require("connect-mongo");
 const logger = require("./logger");
-// const datefns = require("date-fns");
 const configEngine = require("./engine.config");
-// const DatabaseHandler = require("./database/DatabaseHandler");
 const router = require("./routes/productos");
-// const { normalizeMessages } = require("./controllers/messages.controller");
 const userRouter = require("./routes/user");
 const parseArgs = require("minimist");
 const randomRouter = require("./routes/random");
@@ -52,12 +48,7 @@ if (serverMode === "cluster") {
 		// Initial config
 		const app = express();
 		const httpServer = new HttpServer(app);
-		// const io = new IOServer(httpServer);
 		const PORT = parseArgs(process.argv.slice(2)).PORT || 8080;
-		// let messages = [];
-		// let products = [];
-		// const messageHandler = new DatabaseHandler("Messages");
-		// const productHandler = new DatabaseHandler("Products");
 
 		// Passport & session
 		app.use(
@@ -94,9 +85,9 @@ if (serverMode === "cluster") {
 		});
 
 		// Routes
-		app.use("/user", userRouter);
-
+		app.use("/api/user", userRouter);
 		app.use("/api/productos", router);
+		app.use("/api/randoms", randomRouter);
 
 		app.get("/login", (req, res) => {
 			res.render("login");
@@ -105,8 +96,6 @@ if (serverMode === "cluster") {
 		app.get("/registrate", (req, res) => {
 			res.render("signup");
 		});
-
-		app.use("/api/randoms", randomRouter);
 
 		app.get("/info/data", (req, res) => {
 			res.json({
@@ -155,49 +144,6 @@ if (serverMode === "cluster") {
 					error.message
 				)
 			);
-
-		// Sockets
-
-		/* io.on("connection", async (socket) => {
-			//logger.log("Usuario conectado!");
-			messages = await messageHandler.getAll();
-			products = await productHandler.getAll();
-			socket.emit("messages", normalizeMessages(messages));
-			socket.emit("products", products);
-			socket.on("new-product", (data) => {
-				let id = 1;
-				products.forEach((item) => {
-					if (item.id > id) {
-						id = item.id;
-					}
-				});
-				products.push({ id: id + 1, ...data });
-				io.sockets.emit("products", products);
-				productHandler.save(data);
-			});
-			socket.on("message", async (data) => {
-				const message = {
-					author: {
-						email: data.email,
-						nombre: data.nombre,
-						apellido: data.apellido,
-						edad: data.edad,
-						alias: data.alias,
-						avatar: data.avatar,
-					},
-					text: data.message,
-					date: datefns.format(
-						parseInt(data.timestamp),
-						"dd/MM/yyyy HH:mm:ss"
-					),
-					timestamp: data.timestamp,
-				};
-				messages.push(message);
-				const normalizedMessages = normalizeMessages(messages);
-				io.sockets.emit("messages", normalizedMessages);
-				await messageHandler.save(message);
-			});
-		}); */
 	}
 } else {
 	logger.info(

@@ -4,7 +4,7 @@ const Message = require("./models/message");
 const Producto = require("./models/product");
 const User = require("./models/user");
 
-module.exports = class MongoDataHandler {
+module.exports = class DAO {
 	/**
 	 * Initialize new instance
 	 * @param {String} schemaName
@@ -21,12 +21,9 @@ module.exports = class MongoDataHandler {
 			case "Users":
 				this.model = User;
 			default:
-				logger.error(
-					`Error connecting to mongo: Schema ${schemaName} not found.`
-				);
-				throw new Error(
-					`Error connecting to mongo: Schema ${schemaName} not found.`
-				);
+				const error = `Error connecting to mongo: Schema ${schemaName} not found.`;
+				logger.error(error);
+				throw new Error(error);
 		}
 	}
 
