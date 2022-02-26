@@ -1,6 +1,7 @@
 const logger = require("../logger");
-const DatabaseHandler = require("../database/DAO");
-const productHandler = new DatabaseHandler("Products");
+const DAOFactory = require("../database/DAOs/index");
+const factory = new DAOFactory();
+const productHandler = factory.createDAO("Products");
 
 /**
  * Returns all pproducts in database

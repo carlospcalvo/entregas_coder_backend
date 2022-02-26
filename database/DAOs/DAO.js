@@ -1,30 +1,14 @@
 const mongoose = require("mongoose");
+const MessageDTO = require("../DTOs/message");
 const logger = require("tracer").colorConsole();
-const Message = require("./models/message");
-const Producto = require("./models/product");
-const User = require("./models/user");
 
 module.exports = class DAO {
 	/**
 	 * Initialize new instance
-	 * @param {String} schemaName
-	 * @param {mongoose.Schema} schema
+	 * @param {mongoose.Model} model
 	 */
-	constructor(schemaName) {
-		switch (schemaName) {
-			case "Messages":
-				this.model = Message;
-				break;
-			case "Products":
-				this.model = Producto;
-				break;
-			case "Users":
-				this.model = User;
-			default:
-				const error = `Error connecting to mongo: Schema ${schemaName} not found.`;
-				logger.error(error);
-				throw new Error(error);
-		}
+	constructor(model) {
+		this.model = model;
 	}
 
 	/**
@@ -47,6 +31,11 @@ module.exports = class DAO {
 					4
 				)}`
 			);
+
+			if (this.model.modelName === "Message") {
+				return new MessageDTO(result);
+			}
+
 			return result.id;
 		} catch (error) {
 			logger.error(error.message);
@@ -65,6 +54,9 @@ module.exports = class DAO {
 				.find({ id: queryId })
 				.select({ __v: 0, _id: 0 })
 				.lean();
+			if (this.model.modelName === "Message") {
+				return new MessageDTO(item[0]);
+			}
 			return item[0];
 		} catch (error) {
 			logger.error(error);
@@ -78,7 +70,15 @@ module.exports = class DAO {
 	 */
 	async getAll() {
 		try {
-			return await this.model.find({}).select({ __v: 0, _id: 0 }).lean();
+			const data = await this.model
+				.find({})
+				.select({ __v: 0, _id: 0 })
+				.lean();
+
+			if (this.model.modelName === "Message") {
+				return data.map((msg) => new MessageDTO(msg));
+			}
+			return data;
 		} catch (error) {
 			logger.error(error);
 			throw new Error(error.message);

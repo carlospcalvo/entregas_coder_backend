@@ -18,7 +18,6 @@ const messagesSchema = [schemaMessage];
 
 module.exports = {
 	normalizeMessages: (messages) => {
-		//console.log("normalizeMessages: ", messages);
 		return normalize(messages, messagesSchema);
 	},
 	denormalizeMessages: (messages) => denormalize(messages, messagesSchema),

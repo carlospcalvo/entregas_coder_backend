@@ -1,5 +1,5 @@
-// const socket = io();
-/* 
+const socket = io();
+
 const schemaAuthor = new normalizr.schema.Entity(
 	"authors",
 	{},
@@ -12,11 +12,11 @@ const schemaMessage = new normalizr.schema.Entity(
 		author: schemaAuthor,
 	},
 	{ idAttribute: "timestamp" }
-); */
+);
 
-// const messagesSchema = [schemaMessage];
+const messagesSchema = [schemaMessage];
 
-/* const addProduct = () => {
+const addProduct = () => {
 	const title = document.getElementById("title").value;
 	const price = parseFloat(document.getElementById("price").value);
 	const thumbnail = document.getElementById("thumbnail").value;
@@ -37,9 +37,9 @@ const schemaMessage = new normalizr.schema.Entity(
 		thumbnail,
 	};
 	socket.emit("new-product", product);
-}; */
+};
 
-/* const sendMessage = () => {
+const sendMessage = () => {
 	const email = document.getElementById("email").value;
 	const message = document.getElementById("message").value;
 	const nombre = document.getElementById("nombre").value;
@@ -91,7 +91,7 @@ const schemaMessage = new normalizr.schema.Entity(
 	socket.emit("message", messageSent);
 
 	document.getElementById("message").value = "";
-}; */
+};
 
 const renderProducts = async () => {
 	if (window.location.pathname === "/") {
@@ -313,9 +313,9 @@ window.onload = async () => {
 			console.error(error);
 		}
 	}
-	//socket.on("products", (products) => renderProducts(products));
-	// socket.on("messages", (messages) => renderMessages(messages));
-	// renderProducts();
+	socket.on("products", (products) => renderProducts(products));
+	socket.on("messages", (messages) => renderMessages(messages));
+	renderProducts();
 };
 
 const handleLogout = async () => {
@@ -329,7 +329,7 @@ const handleLogout = async () => {
 			"Allow-Access-Control-Origin": "*",
 		},
 	});
-	console.log(response);
+
 	if (response.status === 200) {
 		deleteNodes(loginDiv);
 		loginDiv.innerHTML = `
