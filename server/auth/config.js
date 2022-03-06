@@ -54,7 +54,6 @@ passport.use(
 			logger.info("Creating user...");
 			let userCreated = await User.create(newUser);
 
-			logger.info(typeof userCreated);
 			logger.info("User created!");
 			return done(null, userCreated);
 		} catch (error) {

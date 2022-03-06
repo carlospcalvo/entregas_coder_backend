@@ -24,6 +24,7 @@ module.exports = class DAO {
 				.limit(1);
 			let id = lastId.length > 0 ? parseInt(lastId[0].id) + 1 : 1;
 			let result = await this.model({ ...newData, id }).save();
+
 			logger.info(
 				`${this.model.modelName} created: ${JSON.stringify(
 					result,
@@ -36,7 +37,7 @@ module.exports = class DAO {
 				return new MessageDTO(result);
 			}
 
-			return result.id;
+			return result;
 		} catch (error) {
 			logger.error(error.message);
 			throw new Error(error.message);
