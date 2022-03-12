@@ -17,10 +17,3 @@ El archivo `index.js` se puede definir las siguientes variables:
   ```
   node index.js --PORT=8081  // corre en modo fork en el puerto 8081
   ```
-  
-  - Modo: default = fork
-  ```
-  node index.js --cluster // corre en modo cluster en el puerto 8080
-  ```
-
-Tener en cuenta que si bien se puede cambiar el puerto del servidor via CLI, el frontend va a seguir consultando al puerto 8080 salvo que se configure Nginx para balancear las cargas.
