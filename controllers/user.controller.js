@@ -21,14 +21,14 @@ module.exports = class UserController {
 		res.sendStatus(201);
 	};
 
-	postLoginController = (req, res) => {
-		req.logIn(req.user, (err) => {
-			if (err) logger.fatal(err);
-			req.session.user = req.user.username;
-			logger.info(`User '${req.user.username}' logueado`);
-			res.redirect("/");
-		});
-	};
+	// postLoginController = (req, res) => {
+	// 	req.logIn(req.user, (err) => {
+	// 		if (err) logger.fatal(err);
+	// 		req.session.user = req.user.username;
+	// 		logger.info(`User '${req.user.username}' logueado`);
+	// 		res.redirect("/");
+	// 	});
+	// };
 
 	logoutController = (req, res) => {
 		req.session.destroy((err) => {

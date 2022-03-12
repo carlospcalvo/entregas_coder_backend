@@ -1,4 +1,5 @@
 const express = require("express");
+const { graphqlHTTP } = require("express-graphql");
 const { Server: HttpServer } = require("http");
 const { Server: IOServer } = require("socket.io");
 const session = require("express-session");
@@ -9,8 +10,8 @@ const logger = require("./logger");
 const configEngine = require("./engine.config");
 const MongoConnection = require("./database/connection");
 const { socketController } = require("./controllers/socket.controller");
-const Router = require("./routes");
-
+const schema = require("./graphql/schema.js");
+const { buildContext } = require("graphql-passport");
 require("dotenv").config();
 
 // Mongo
@@ -47,15 +48,20 @@ app.use(passport.session());
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
 app.use((req, res, next) => {
 	logger.info(`Incoming request: [${req.method}] ${req.originalUrl}`);
 	next();
 });
 
 // Routes
-const router = new Router();
-app.use(router.start());
+app.use(
+	"/graphql",
+	graphqlHTTP((req, res) => ({
+		schema,
+		graphiql: true,
+		context: buildContext({ req, res }),
+	}))
+);
 
 // Server startup
 httpServer

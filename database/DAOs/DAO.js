@@ -92,7 +92,9 @@ module.exports = class DAO {
 	 */
 	async deleteById(queryId) {
 		try {
+			const deleted = await this.getById(queryId);
 			await this.model.deleteOne({ id: queryId });
+			return deleted;
 		} catch (error) {
 			logger.error(error);
 			throw new Error(error.message);
