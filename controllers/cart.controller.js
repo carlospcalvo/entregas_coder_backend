@@ -137,7 +137,7 @@ const confirmCart = async (req, res) => {
 
 		await transporter.sendMail(mailOptions);
 
-		await twilio.messages.create({
+		/* await twilio.messages.create({
 			body: `Nuevo pedido de ${nombre} (${email})`,
 			from: "whatsapp:+14155238886",
 			to: `whatsapp:${telefono}`,
@@ -147,7 +147,7 @@ const confirmCart = async (req, res) => {
 			body: "Su pedido ha sido recibido y está siendo procesado.",
 			from: "+1 845 552 2356",
 			to: `whatsapp:${telefono}`,
-		});
+		}); */
 		await CartDataHandler.deleteById(cart.id);
 
 		res.status(200).json({

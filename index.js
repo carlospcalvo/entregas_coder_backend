@@ -1,11 +1,11 @@
 const express = require("express");
 const app = express();
-// const logger = require("tracer").colorConsole();
 const logger = require("./config/logger");
 const PORT = process.env.PORT || 8080;
 
 const session = require("express-session");
 const passport = require("passport");
+const mongoose = require("mongoose");
 const mongoStore = require("connect-mongo");
 
 const productRouter = require("./routes/productos");
@@ -15,7 +15,6 @@ const userRouter = require("./routes/user");
 const { initializeProducts } = require("./controllers/products.controller");
 require("dotenv").config();
 
-const mongoose = require("mongoose");
 mongoose
 	.connect(process.env.MONGO_URL, {
 		useNewUrlParser: true,
