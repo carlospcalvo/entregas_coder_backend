@@ -3,7 +3,7 @@ window.onload = async () => {
 	try {
 		const { data } = await axios({
 			method: "GET",
-			url: `https://warm-wave-22517.herokuapp.com/info/data`,
+			url: `http://localhost:8080/info/data`,
 			headers: {
 				"Content-type": "application/json;charset=utf-8",
 				"Allow-Access-Control-Origin": "*",
