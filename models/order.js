@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
-const cartSchema = new mongoose.Schema({
+const orderSchema = new mongoose.Schema({
 	id: { type: String, unique: true, required: true },
 	timestamp: { type: Number, default: Date.now() },
-	owner: { type: mongoose.mongo.ObjectId, required: true, unique: true },
+	owner: { type: mongoose.mongo.ObjectId, required: true, unique: false },
 	productos: {
 		type: [
 			{
@@ -15,4 +15,4 @@ const cartSchema = new mongoose.Schema({
 	},
 });
 
-module.exports = mongoose.model("Carrito", cartSchema);
+module.exports = mongoose.model("Orden", orderSchema, "ordenes");

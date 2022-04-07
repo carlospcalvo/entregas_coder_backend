@@ -1,30 +1,23 @@
 const express = require("express");
+const { productNotFound } = require("../controllers/product.controller");
 const {
-	createCart,
-	deleteCart,
+	emptyCart,
 	getCartProducts,
-	addProductToCart,
+	addProductsToCart,
 	deleteProductFromCart,
 	confirmCart,
 } = require("../controllers/cart.controller");
-const { productNotFound } = require("../controllers/products.controller");
 
 const router = express.Router();
 
-router.post("/", createCart);
+router.get("/", getCartProducts);
 
-router.delete("/:id", deleteCart);
+router.post("/", addProductsToCart);
 
 router.get("/confirmar", confirmCart);
 
-router.get("/:id/productos", getCartProducts);
+router.delete("/", emptyCart);
 
-router.post("/:id/productos", /* productNotFound, */ addProductToCart);
-
-router.delete(
-	"/:id/productos/:id_prod",
-	productNotFound,
-	deleteProductFromCart
-);
+router.delete("/:id", productNotFound, deleteProductFromCart);
 
 module.exports = router;

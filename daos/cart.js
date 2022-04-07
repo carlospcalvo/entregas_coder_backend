@@ -1,4 +1,4 @@
-const ContenedorMongo = require("../../contenedores/ContenedorMongoDB");
+const ContenedorMongo = require("../contenedores/ContenedorMongoDB");
 
 module.exports = class CarritoDaoMongo extends ContenedorMongo {
 	constructor() {
@@ -6,16 +6,16 @@ module.exports = class CarritoDaoMongo extends ContenedorMongo {
 	}
 
 	/**
-	 * Adds a product and quantity to cart
+	 * Agrega un producto al carrito
 	 * @param {Carrito} cart
-	 * @param {Producto} product
+	 * @param {Producto} product_id
 	 * @param {Number} quantity
 	 */
-	async addProduct(cart, product, quantity) {
+	async addProduct(cart, product_id, quantity) {
 		try {
 			await this.model.updateOne(
 				{ id: cart.id },
-				{ $push: { productos: { item: product, quantity } } },
+				{ $push: { productos: { item: product_id, quantity } } },
 				{ upsert: true }
 			);
 		} catch (error) {
@@ -24,7 +24,7 @@ module.exports = class CarritoDaoMongo extends ContenedorMongo {
 	}
 
 	/**
-	 * Deletes a product from cart
+	 * Elimina un producto del carrito
 	 * @param {Number} cart_id
 	 * @param {Number} product_id
 	 */
@@ -33,7 +33,7 @@ module.exports = class CarritoDaoMongo extends ContenedorMongo {
 			await this.model.findOneAndUpdate(
 				{ id: cart_id },
 				{
-					$pull: { productos: { "item.id": product_id } },
+					$pull: { productos: { item: product_id } },
 				}
 			);
 		} catch (error) {
@@ -41,9 +41,25 @@ module.exports = class CarritoDaoMongo extends ContenedorMongo {
 		}
 	}
 
+	/**
+	 * Devuelve el carrito correspondiente a un usuario
+	 * @param {string} owner_id
+	 * @returns {any} El carrito del usuario
+	 */
 	async findCartByOwner(owner_id) {
 		try {
 			return await this.model.findOne({ owner: owner_id }).lean();
+		} catch (error) {
+			throw new Error(error.message);
+		}
+	}
+
+	async emptyCart(cart_id) {
+		try {
+			await this.model.updateOne(
+				{ id: cart_id },
+				{ $set: { productos: [] } }
+			);
 		} catch (error) {
 			throw new Error(error.message);
 		}

@@ -1,10 +1,9 @@
-const { adminEmail } = require("../config/constants");
 const nodemailer = require("nodemailer");
+const { mailing } = require("../config/constants");
+const { host, port, auth } = mailing;
+
 module.exports = nodemailer.createTransport({
-	host: "smtp.ethereal.email",
-	port: 587,
-	auth: {
-		user: adminEmail,
-		pass: "m2DSQrKdvuaAuFeuv8",
-	},
+	host,
+	port,
+	auth,
 });

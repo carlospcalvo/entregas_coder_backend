@@ -1,7 +1,6 @@
-// const logger = require("tracer").colorConsole();
 const logger = require("../config/logger");
 const { productos: DataHandler } = require("../daos/index");
-// const DataHandler = DAO.productos;
+const { v4: uuidv4 } = require("uuid");
 
 /**
  * Returns a product if id is specified, else all products
@@ -112,9 +111,9 @@ const productNotFound = async (req, res, next) => {
 };
 
 const initializeProducts = async (PORT) => {
-	let dummyData = [
+	const dummyData = [
 		{
-			id: 1,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "MBA20_M1_8_256",
 			nombre: "Macbook Air 2020 M1",
@@ -124,7 +123,7 @@ const initializeProducts = async (PORT) => {
 			stock: 100,
 		},
 		{
-			id: 2,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "MBP20_M1_8_512",
 			nombre: "Macbook Pro 2020 M1",
@@ -134,7 +133,7 @@ const initializeProducts = async (PORT) => {
 			stock: 50,
 		},
 		{
-			id: 3,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "MBP19_i7_8_256",
 			nombre: "Macbook Pro 2019 Intel",
@@ -144,7 +143,7 @@ const initializeProducts = async (PORT) => {
 			stock: 34,
 		},
 		{
-			id: 4,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "HP_14_dq2024la",
 			nombre: "Notebook Hp 14-dq2024la Core I3 1115g4 8gb 256gb M2 Ssd W10",
@@ -155,7 +154,7 @@ const initializeProducts = async (PORT) => {
 			stock: 0,
 		},
 		{
-			id: 5,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "DELL_latitude_3410",
 			nombre: "Notebook Dell Latitude 3410 Core I5 8gb 1tb W10 Pro",
@@ -166,7 +165,7 @@ const initializeProducts = async (PORT) => {
 			stock: 100,
 		},
 		{
-			id: 6,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "HP_240_g7",
 			nombre: "Notebook Hp 240 G7 Intel N4020 8gb Hdd 1tb Led 14 Win10 Ctas",
@@ -177,7 +176,7 @@ const initializeProducts = async (PORT) => {
 			stock: 100,
 		},
 		{
-			id: 7,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "HP_250_g7",
 			nombre: "Notebook Hp 250 G7 I3 7020u 8gb Ssd 240gb 15.6 Win10 Home",
@@ -188,7 +187,7 @@ const initializeProducts = async (PORT) => {
 			stock: 100,
 		},
 		{
-			id: 8,
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "LENOVO_ip_S340_15api",
 			nombre: "Notebook Lenovo Ip S340-15api Ryzen 3 3200u 4gb 256ssd D2",
@@ -199,6 +198,7 @@ const initializeProducts = async (PORT) => {
 			stock: 100,
 		},
 		{
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "DELL_latitude_5420",
 			nombre: "Notebook Dell Latitude 5420 I5-1135g7 16gb 256 Ssd Win10p",
@@ -209,6 +209,7 @@ const initializeProducts = async (PORT) => {
 			stock: 0,
 		},
 		{
+			id: uuidv4(),
 			timestamp: Date.now(),
 			codigo: "LENOVO_ip_Flex_15IWL",
 			nombre: 'Notebook Lenovo IdeaPad Flex-15IWL onyx black táctil 15.6", Intel Core i7 8565U 8GB de RAM 512GB SSD, NVIDIA GeForce MX230 60 Hz 1920x1080px Windows 10 Home',
@@ -222,7 +223,7 @@ const initializeProducts = async (PORT) => {
 
 	try {
 		logger.info("Loading products...");
-		let data = await DataHandler.getAll();
+		const data = await DataHandler.getAll();
 		if (data.length === 0) {
 			logger.info("Product collection empty, initializing products...");
 			for (const item of dummyData) {
@@ -230,16 +231,9 @@ const initializeProducts = async (PORT) => {
 			}
 		}
 	} catch (error) {
-		if (error.code !== "ENOENT") {
-			logger.error(error);
-		} else {
-			logger.info("Product collection empty, initializing products...");
-			for (const item of dummyData) {
-				await DataHandler.save(item);
-			}
-		}
+		logger.error(error);
 	} finally {
-		logger.trace(`Server running on port ${PORT}`);
+		logger.info(`Server running on port ${PORT}`);
 	}
 };
 

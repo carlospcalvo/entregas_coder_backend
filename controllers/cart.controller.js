@@ -1,57 +1,25 @@
-// const logger = require("tracer").colorConsole();
 const logger = require("../config/logger");
-const DAO = require("../daos/index");
-const CartDataHandler = DAO.carritos;
-const ProductDataHandler = DAO.productos;
 const transporter = require("../config/mailing");
-const { adminEmail } = require("../config/constants");
-const twilio = require("../config/twilio");
-
-const createCart = async (req, res) => {
-	try {
-		if (!req.session?.passport?.user) {
-			res.sendStatus(401);
-			return;
-		}
-
-		let new_cart_id = await CartDataHandler.save({
-			owner: req.session.passport.user,
-			timestamp: Date.now(),
-			productos: [],
-		});
-		res.status(200).json({
-			new_cart_id,
-			...req.body,
-		});
-	} catch (error) {
-		logger.error(error.message);
-		res.status(500).json({
-			status: 500,
-			message: error.message,
-		});
-	}
-};
-
-const deleteCart = async (req, res) => {
-	try {
-		await CartDataHandler.deleteById(req.params.id);
-		res.status(200).json({
-			status: 200,
-			message: `Cart with id ${req.params.id} deleted succesfully`,
-		});
-	} catch (error) {
-		logger.error(error.message);
-		res.status(500).json({
-			status: 500,
-			message: error.message,
-		});
-	}
-};
+const { mailing } = require("../config/constants");
+const DAO = require("../daos/index");
+const {
+	carritos: CartDataHandler,
+	ordenes: OrderDataHandler,
+	usuarios: UserDataHandler,
+	productos: ProductDataHandler,
+} = DAO;
 
 const getCartProducts = async (req, res) => {
 	try {
-		let { productos } = await CartDataHandler.getById(req.params.id);
-		res.status(200).json(productos);
+		const cart = await CartDataHandler.findCartByOwner(req.user._id);
+		console.log(cart);
+		if (req.user._id === cart.owner.toString()) {
+			res.status(200).json(cart.productos);
+		} else {
+			res.status(403).json({
+				message: `Usuario no autorizado a consultar carritos ajenos`,
+			});
+		}
 	} catch (error) {
 		logger.error(error.message);
 		res.status(500).json({
@@ -61,17 +29,29 @@ const getCartProducts = async (req, res) => {
 	}
 };
 
-const addProductToCart = async (req, res) => {
+const addProductsToCart = async (req, res) => {
 	try {
-		let { productos } = req.body;
-		let cart = await CartDataHandler.getById(req.params.id);
+		const { productos } = req.body;
 
-		for (const item of productos) {
-			let product = await ProductDataHandler.getById(item.id);
-			await CartDataHandler.addProduct(cart, product, item.quantity);
+		const productList = await ProductDataHandler.getAll();
+		const existingProducts = productList.map((product) => product.id);
+		const productsExist = productos.every((item) =>
+			existingProducts.includes(item.id)
+		);
+
+		if (!productsExist) {
+			return res.status(404).json({
+				message: `Uno de los productos no existe.`,
+			});
 		}
 
-		cart = await CartDataHandler.getById(req.params.id);
+		let cart = await CartDataHandler.findCartByOwner(req.user._id);
+
+		for (const item of productos) {
+			await CartDataHandler.addProduct(cart, item.id, item.quantity);
+		}
+
+		cart = await CartDataHandler.findCartByOwner(req.user._id);
 
 		res.status(200).json(cart);
 	} catch (error) {
@@ -85,12 +65,32 @@ const addProductToCart = async (req, res) => {
 
 const deleteProductFromCart = async (req, res) => {
 	try {
-		let product_id = parseInt(req.params.id_prod);
-		let newData;
-		await CartDataHandler.removeProduct(req.params.id, product_id);
+		const product_id = req.params.id;
+		const cart = await CartDataHandler.findCartByOwner(req.user._id);
 
-		newData = await CartDataHandler.getById(req.params.id);
+		await CartDataHandler.removeProduct(cart.id, product_id);
+
+		const newData = await CartDataHandler.getById(cart.id);
+
 		res.status(200).json(newData);
+	} catch (error) {
+		logger.error(error.message);
+		res.status(500).json({
+			status: 500,
+			message: error.message,
+		});
+	}
+};
+
+const emptyCart = async (req, res) => {
+	try {
+		const cart = await CartDataHandler.findCartByOwner(req.user._id);
+
+		await CartDataHandler.emptyCart(cart.id);
+		res.status(200).json({
+			status: 200,
+			message: `Carrito con id ${cart.id} vaciado con éxito.`,
+		});
 	} catch (error) {
 		logger.error(error.message);
 		res.status(500).json({
@@ -102,60 +102,64 @@ const deleteProductFromCart = async (req, res) => {
 
 const confirmCart = async (req, res) => {
 	try {
-		const Usuario = require("../models/user");
-		if (!req.session?.passport?.user) {
-			res.sendStatus(401);
-			return;
-		}
-		const { email, nombre, telefono } = await Usuario.findById(
-			req.session.passport.user
-		).lean();
-		const cart = await CartDataHandler.findCartByOwner(
-			req.session.passport.user
+		const { email, nombre } = await UserDataHandler.findByEmail(
+			req.user.email
 		);
+		const cart = await CartDataHandler.findCartByOwner(req.user._id);
+
+		if (!cart.productos) {
+			return res
+				.status(400)
+				.json({ message: `No es posible confirmar un carrito vacío` });
+		}
+
 		let html = `<h1>Datos del pedido</h1>`;
 
-		cart.productos.forEach((producto, i) => {
+		cart.productos.forEach(async ({ item, quantity }) => {
+			const { nombre, codigo, precio, descripcion, stock } =
+				await ProductDataHandler.getById(item);
 			html += `
-				<h3>${producto.item.nombre}</h3>
+				<h3>${nombre}</h3>
 				<ul>
-					<li>Código: ${producto.item.codigo}</li>
-					<li>Descripción: ${producto.item.descripcion}</li>
-					<li>Cantidad: ${producto.quantity}</li>
-					<li>Precio: ${producto.item.precio}</li>
-					<li>Stock: ${producto.item.stock}</li>
+					<li>Código: ${codigo}</li>
+					<li>Descripción: ${descripcion}</li>
+					<li>Cantidad: ${quantity}</li>
+					<li>Precio: ${precio}</li>
+					<li>Stock: ${stock}</li>
 				</ul>
 			`;
 		});
 
-		const mailOptions = {
-			from: "CoderServer",
-			to: adminEmail,
+		const adminMailOptions = {
+			from: {
+				name: "CoderServer",
+				address: mailing.auth.user,
+			},
+			to: mailing.auth.user,
 			subject: `Nuevo pedido de ${nombre} (${email})`,
 			html,
 		};
 
-		await transporter.sendMail(mailOptions);
+		const clientMailOptions = {
+			...adminMailOptions,
+			to: email,
+			subject: `Detalle de su pedido`,
+		};
 
-		/* await twilio.messages.create({
-			body: `Nuevo pedido de ${nombre} (${email})`,
-			from: "whatsapp:+14155238886",
-			to: `whatsapp:${telefono}`,
-		});
+		await Promise.all([
+			transporter.sendMail(adminMailOptions),
+			transporter.sendMail(clientMailOptions),
+		]);
 
-		await twilio.messages.create({
-			body: "Su pedido ha sido recibido y está siendo procesado.",
-			from: "+1 845 552 2356",
-			to: `whatsapp:${telefono}`,
-		}); */
-		await CartDataHandler.deleteById(cart.id);
+		await OrderDataHandler.save(cart);
+		await CartDataHandler.emptyCart(cart.id);
 
 		res.status(200).json({
 			status: 200,
 			message: "Pedido confirmado con éxito",
 		});
 	} catch (error) {
-		logger.error(error.message);
+		logger.error("Error confirmando pedido: ", error.message);
 		res.status(500).json({
 			status: 500,
 			message: error.message,
@@ -164,10 +168,9 @@ const confirmCart = async (req, res) => {
 };
 
 module.exports = {
-	createCart,
-	deleteCart,
+	emptyCart,
 	getCartProducts,
-	addProductToCart,
+	addProductsToCart,
 	deleteProductFromCart,
 	confirmCart,
 };

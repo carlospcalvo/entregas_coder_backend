@@ -1,52 +1,33 @@
-const express = require("express");
-const app = express();
+const { server: config } = require("./config/constants");
 const logger = require("./config/logger");
-const PORT = process.env.PORT || 8080;
-
-const session = require("express-session");
-const passport = require("passport");
+const express = require("express");
+const handlebars = require("express-handlebars");
+const { Server: HttpServer } = require("http");
+const { Server: IOServer } = require("socket.io");
 const mongoose = require("mongoose");
-const mongoStore = require("connect-mongo");
-
+const passport = require("passport");
 const productRouter = require("./routes/productos");
 const cartRouter = require("./routes/cart");
 const userRouter = require("./routes/user");
+const orderRouter = require("./routes/orders");
+const { socketController } = require("./controllers/message.controller");
+const { initializeProducts } = require("./controllers/product.controller");
+const { verifyToken } = require("./auth/middleware");
 
-const { initializeProducts } = require("./controllers/products.controller");
-require("dotenv").config();
-
+// Init
+const app = express();
+const httpServer = new HttpServer(app);
+const io = new IOServer(httpServer);
 mongoose
-	.connect(process.env.MONGO_URL, {
+	.connect(config.mongo, {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 	})
-	.then(() => logger.trace("Connected to MongoDB!"))
+	.then(() => logger.info("Connected to MongoDB!"))
 	.catch((err) => logger.error("Error connecting to MongoDB: ", err.stack));
 
-// Passport & session
-app.use(
-	session({
-		store: mongoStore.create({
-			mongoUrl: process.env.MONGO_URL,
-			mongoOptions: {
-				useNewUrlParser: true,
-				useUnifiedTopology: true,
-			},
-		}),
-		secret: "entrega_final",
-		cookie: {
-			maxAge: 300_000,
-		},
-		rolling: true,
-		resave: true,
-		saveUninitialized: false,
-	})
-);
-
-app.use(passport.initialize());
-app.use(passport.session());
-
 // Middlewares
+app.use(passport.initialize());
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -59,8 +40,27 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/productos", productRouter);
-app.use("/api/carrito", cartRouter);
+app.use("/api/carrito", verifyToken, cartRouter);
+app.use("/api/ordenes", verifyToken, orderRouter);
 app.use("/api/user", userRouter);
+
+// Info
+app.get("/info/data", (req, res) => {
+	res.json({
+		entryArgs: process.argv,
+		OS: process.platform,
+		nodeVersion: process.version,
+		totalReservedMemory: process.memoryUsage().rss,
+		execPath: process.execPath,
+		processId: process.pid,
+		projectFolder: process.mainModule.path,
+		CPUs: require("os").cpus().length,
+	});
+});
+
+app.get("/", (req, res) => {
+	res.render("info");
+});
 
 // 404
 app.use((req, res, next) => {
@@ -70,13 +70,26 @@ app.use((req, res, next) => {
 	});
 });
 
-// Error handler ?
+// Error handler
 app.use((err, req, res, next) => {
 	logger.fatal(err);
-	res.sendStatus(500);
+	res.status(500).json({ message: err });
 });
 
-app.listen(PORT, async () => await initializeProducts(PORT)).on(
-	"error",
-	(error) => logger.error("[ERROR]", error.message)
-);
+httpServer
+	.listen(config.port, async () => {
+		await initializeProducts(config.port);
+		const hbs = handlebars.create({
+			extname: "hbs",
+			defaultLayout: "main.hbs",
+			partialsDir:
+				__dirname + "/public/templates/handlebars/views/partials/",
+		});
+		app.engine("hbs", hbs.engine);
+		app.set("view engine", "hbs");
+		app.set("views", __dirname + "/public/templates/handlebars/views");
+	})
+	.on("error", (error) => logger.error("[ERROR]", error.message));
+
+// Sockets
+io.on("connection", socketController);

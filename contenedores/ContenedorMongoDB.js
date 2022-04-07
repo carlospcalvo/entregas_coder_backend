@@ -1,15 +1,11 @@
-const mongoose = require("mongoose");
-// const logger = require("tracer").colorConsole();
-const logger = require("../config/logger");
 const Producto = require("../models/product");
 const Carrito = require("../models/cart");
+const Usuario = require("../models/user");
+const Orden = require("../models/order");
+const Mensaje = require("../models/message");
+const { v4: uuidv4 } = require("uuid");
 
 module.exports = class MongoDataHandler {
-	/**
-	 * Initialize new instance
-	 * @param {String} schemaName
-	 * @param {mongoose.Schema} schema
-	 */
 	constructor(schemaName) {
 		switch (schemaName) {
 			case "Producto":
@@ -18,46 +14,32 @@ module.exports = class MongoDataHandler {
 			case "Carrito":
 				this.model = Carrito;
 				break;
+			case "Usuario":
+				this.model = Usuario;
+				break;
+			case "Orden":
+				this.model = Orden;
+				break;
+			case "Mensaje":
+				this.model = Mensaje;
+				break;
 			default:
 				throw new Error(
 					`Error connecting to mongo: Schema ${schemaName} not found.`
 				);
 		}
 	}
-	/**
-	 * Saves an object in database.
-	 * @param {Object} newData Object to be saved.
-	 * @returns {Number} New object id
-	 */
+
 	async save(newData = {}) {
 		try {
-			let lastId = await this.model
-				.find({})
-				.select({ id: 1 })
-				.sort({ id: "desc" })
-				.limit(1);
-			let id = lastId.length > 0 ? parseInt(lastId[0].id) + 1 : 1;
-
+			let id = uuidv4();
 			let result = await this.model({ ...newData, id }).save();
-			logger.info(
-				`${this.model.modelName} created: ${JSON.stringify(
-					result,
-					null,
-					4
-				)}`
-			);
 			return result.id;
 		} catch (error) {
-			logger.error(error.message);
 			throw new Error(error.message);
 		}
 	}
 
-	/**
-	 * Get an element from database by its id
-	 * @param {Number} queryId Element's id
-	 * @returns {Object} Element
-	 */
 	async getById(queryId) {
 		try {
 			const item = await this.model.find({ id: queryId });
@@ -67,10 +49,6 @@ module.exports = class MongoDataHandler {
 		}
 	}
 
-	/**
-	 * Get all elements from database
-	 * @returns {Array} Array of elements
-	 */
 	async getAll() {
 		try {
 			return await this.model.find({});
@@ -79,10 +57,6 @@ module.exports = class MongoDataHandler {
 		}
 	}
 
-	/**
-	 * Deletes an element from the database by id
-	 * @param {Number} queryId Id of the element to be deleted
-	 */
 	async deleteById(queryId) {
 		try {
 			await this.model.deleteOne({ id: queryId });
@@ -91,10 +65,6 @@ module.exports = class MongoDataHandler {
 		}
 	}
 
-	/**
-	 * Modifies an item by replacing it (PUT)
-	 * @param {Object} item Item to be modified
-	 */
 	async modifyItem(item) {
 		try {
 			await this.model.findOneAndReplace({ id: item.id }, item);
@@ -103,9 +73,6 @@ module.exports = class MongoDataHandler {
 		}
 	}
 
-	/**
-	 * Deletes all elements in the file
-	 */
 	async deleteAll() {
 		try {
 			await this.model.deleteMany({});

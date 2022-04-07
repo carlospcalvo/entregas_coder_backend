@@ -1,71 +1,29 @@
-const logger = require("../config/logger");
 const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const bcrypt = require("bcrypt");
+const JWTStrategy = require("passport-jwt").Strategy;
+const ExtractJWT = require("passport-jwt").ExtractJwt;
 const User = require("../models/user");
-
-const validatePassword = (user, password) =>
-	bcrypt.compareSync(password, user.password);
+require("dotenv").config();
 
 passport.use(
-	"login",
-	new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
-		User.findOne({ email }, (err, user) => {
-			if (err) {
-				logger.error(`Error in login: ${err}`);
-				return done(err, null, { message: err });
-			}
-
-			if (!user) {
-				logger.warn(`User '${email}' not found.`);
-				return done(null, false, {
-					message: `El usuario '${email}' no existe`,
-				});
-			}
-
-			if (!validatePassword(user, password)) {
-				logger.warn(`Invalid password for user '${email}'`);
-				return done(null, false, {
-					message: `Contraseña incorrecta`,
-				});
-			}
-			return done(null, user);
-		});
-	})
-);
-
-passport.use(
-	"signup",
-	new LocalStrategy(
-		{ usernameField: "email", passReqToCallback: true },
-		async (req, email, password, done) => {
+	"jwt",
+	new JWTStrategy(
+		{
+			secretOrKey: process.env.JWT_SECRET,
+			jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+		},
+		async (token, done) => {
 			try {
-				const user = await User.findOne({ email });
+				const user = await User.findOne({
+					email: token.user.email,
+				}).lean();
 
-				if (user) {
-					logger.warn(`User '${email}' already exists.`);
-					return done(null, false, {
-						message: `Ya existe un usuario con el email '${email}'.`,
-					});
+				if (!user) {
+					return done(null, false);
 				}
-				const { nombre, direccion, edad, telefono } = req.body;
-				const newUser = {
-					email,
-					password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
-					nombre,
-					direccion,
-					edad,
-					telefono,
-					avatar: req.file.filename,
-				};
-				logger.debug("Creating user...");
-				let userCreated = await User.create(newUser);
 
-				logger.debug("User created!", newUser);
-				return done(null, userCreated);
+				return done(null, token.user);
 			} catch (error) {
-				logger.error(`Error in signup: ${error}`);
-				return done(error);
+				return done(error, false);
 			}
 		}
 	)
